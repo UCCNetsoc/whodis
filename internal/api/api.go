@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/uccnetsoc/veribot/cmd/veribot/docs"
+	"github.com/uccnetsoc/veribot/docs"
 )
 
 func InitAPI() {
