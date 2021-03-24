@@ -15,7 +15,7 @@ steps:
       tags:
         - "${DRONE_COMMIT_SHA:0:7}_docs"
         - docs
-      target: dev
+      target: doc
       repo: uccnetsoc/veribot
       registry: docker.io
       custom_dns: [1.1.1.1]
