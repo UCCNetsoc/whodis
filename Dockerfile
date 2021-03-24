@@ -1,21 +1,35 @@
-FROM golang:latest AS dev
+FROM golang:1.16-alpine as doc
+
+WORKDIR /doc
+
+COPY . .
+
+# Generate OpenAPI docs
+
+RUN go get github.com/swaggo/swag/cmd/swag
+
+RUN $GOPATH/bin/swag init -g internal/api/api.go
+
+
+FROM golang:1.16-alpine AS dev
 
 WORKDIR /bot
 
+COPY --from=doc /doc .
+
 RUN apk add git
 
-RUN GO111MODULE=on go get github.om/cortesi/modd/cmd/modd
+RUN GO111MODULE=on go get github.com/cortesi/modd/cmd/modd
 
 COPY go.mod .
 COPY go.sum .
 
 RUN go mod download
 
-COPY . .
+# Compile
+RUN go install github.com/uccnetsoc/veribot/cmd/veribot
 
-RUN go install github.com/uccnetsoc/veribot
-
-RUN ["go", "run", "*.go"]
+CMD ["go", "run", "*.go"]
 
 
 FROM alpine
