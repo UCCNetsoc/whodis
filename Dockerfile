@@ -13,7 +13,7 @@ RUN $GOPATH/bin/swag init -g internal/api/api.go
 
 FROM golang:1.16-alpine AS dev
 
-WORKDIR /bot
+WORKDIR /app
 
 COPY --from=doc /doc .
 
