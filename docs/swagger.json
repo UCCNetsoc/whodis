@@ -1,12 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API to authenticate a user through an OAuth provider",
-        "title": "Veribot API",
-        "contact": {},
-        "version": "1.0"
+        "contact": {}
     },
-    "host": "veribot.netsoc.cloud",
-    "basePath": "/api/v1",
     "paths": {}
 }

@@ -1,9 +1,4 @@
-basePath: /api/v1
-host: veribot.netsoc.cloud
 info:
   contact: {}
-  description: API to authenticate a user through an OAuth provider
-  title: Veribot API
-  version: "1.0"
 paths: {}
 swagger: "2.0"

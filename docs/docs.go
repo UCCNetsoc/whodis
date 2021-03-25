@@ -37,12 +37,12 @@ type swaggerInfo struct {
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
-	Version:     "1.0",
-	Host:        "veribot.netsoc.cloud",
-	BasePath:    "/api/v1",
+	Version:     "",
+	Host:        "",
+	BasePath:    "",
 	Schemes:     []string{},
-	Title:       "Veribot API",
-	Description: "API to authenticate a user through an OAuth provider",
+	Title:       "",
+	Description: "",
 }
 
 type s struct{}
