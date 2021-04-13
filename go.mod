@@ -1,4 +1,4 @@
-module github.com/uccnetsoc/veribot
+module github.com/uccnetsoc/whodis
 
 go 1.16
 

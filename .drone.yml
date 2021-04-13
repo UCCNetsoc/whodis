@@ -16,7 +16,7 @@ steps:
         - "${DRONE_COMMIT_SHA:0:7}_docs"
         - docs
       target: doc
-      repo: uccnetsoc/veribot
+      repo: uccnetsoc/whodis
       registry: docker.io
       custom_dns: [1.1.1.1]
       username:
@@ -39,7 +39,7 @@ steps:
         - "${DRONE_COMMIT_SHA:0:7}_dev-env"
         - dev-env
       target: dev
-      repo: uccnetsoc/veribot
+      repo: uccnetsoc/whodis
       registry: docker.io
       custom_dns: [1.1.1.1]
       username:
@@ -62,7 +62,7 @@ steps:
         - "${DRONE_COMMIT_SHA:0:7}"
         - latest
       target: dev
-      repo: uccnetsoc/veribot
+      repo: uccnetsoc/whodis
       registry: docker.io
       custom_dns: [1.1.1.1]
       username:
@@ -135,7 +135,7 @@ steps:
       username: Netsoc CI
       avatar_url: https://raw.githubusercontent.com/drone/brand/3051b0d85318a2a20b62927ba19fc07e24c0d751/logos/png/white/drone-logo-png-white-256.png
       color: "#42f483"
-      message: veribot successfully built and pushed. Build num {{build.number}}. {{build.link}}
+      message: whodis successfully built and pushed. Build num {{build.number}}. {{build.link}}
     when:
       event:
         - push
@@ -155,7 +155,7 @@ steps:
       username: Netsoc CI
       avatar_url: https://raw.githubusercontent.com/drone/brand/3051b0d85318a2a20b62927ba19fc07e24c0d751/logos/png/white/drone-logo-png-white-256.png
       color: "#e04414"
-      message: veribot failed. Build num {{build.number}}. {{build.link}}
+      message: whodis failed. Build num {{build.number}}. {{build.link}}
     when:
       event:
         - push

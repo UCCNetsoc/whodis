@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
 
-	"github.com/uccnetsoc/veribot/pkg/models"
+	"github.com/uccnetsoc/whodis/pkg/models"
 )
 
 var discordConf *oauth2.Config

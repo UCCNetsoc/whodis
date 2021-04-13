@@ -10,8 +10,8 @@ import (
 	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/uccnetsoc/veribot/docs"
-	"github.com/uccnetsoc/veribot/pkg/models"
+	"github.com/uccnetsoc/whodis/docs"
+	"github.com/uccnetsoc/whodis/pkg/models"
 )
 
 // @title Veribot API

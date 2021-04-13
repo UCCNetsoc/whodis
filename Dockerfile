@@ -27,7 +27,7 @@ COPY go.sum .
 RUN go mod download
 
 # Compile
-RUN go install github.com/uccnetsoc/veribot/cmd/veribot
+RUN go install github.com/uccnetsoc/whodis/cmd/whodis
 
 CMD ["go", "run", "*.go"]
 
@@ -36,6 +36,6 @@ FROM alpine
 
 WORKDIR /bin
 
-COPY --from=dev /go/bin/veribot ./veribot
+COPY --from=dev /go/bin/whodis ./whodis
 
-CMD ["sh", "-c", "veribot"]
+CMD ["sh", "-c", "whodis"]

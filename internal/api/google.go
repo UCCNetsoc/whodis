@@ -9,7 +9,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/uccnetsoc/veribot/pkg/models"
+	"github.com/uccnetsoc/whodis/pkg/models"
 
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"

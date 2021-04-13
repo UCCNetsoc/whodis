@@ -8,10 +8,10 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/spf13/viper"
-	"github.com/uccnetsoc/veribot/config"
-	"github.com/uccnetsoc/veribot/internal/api"
-	"github.com/uccnetsoc/veribot/pkg/commands"
-	"github.com/uccnetsoc/veribot/pkg/models"
+	"github.com/uccnetsoc/whodis/config"
+	"github.com/uccnetsoc/whodis/internal/api"
+	"github.com/uccnetsoc/whodis/pkg/commands"
+	"github.com/uccnetsoc/whodis/pkg/models"
 )
 
 func main() {
