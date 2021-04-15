@@ -10,4 +10,10 @@ func initDefaults() {
 	viper.SetDefault("api.hostname", "whodis.netsoc.cloud")
 
 	viper.SetDefault("discord.token", "")
+
+	viper.SetDefault("db.host", "postgres")
+	viper.SetDefault("db.port", "5432")
+	viper.SetDefault("db.user", "root")
+	viper.SetDefault("db.pass", "password")
+	viper.SetDefault("db.name", "promexporter")
 }
