@@ -22,7 +22,7 @@ func main() {
 
 	models.InitModels()
 
-	api.InitAPI()
+	go api.InitAPI()
 	s, err := discordgo.New("Bot " + viper.GetString("discord.token"))
 	if err != nil {
 		log.Fatal(err)
