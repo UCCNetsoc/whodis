@@ -16,6 +16,10 @@ func (s stateMap) get(m *StateParams) (func(m *StateParams) error, bool) {
 	return out, ok
 }
 
+func (s stateMap) set(m *StateParams, p func(m *StateParams) error) {
+	s[m.User.ID+m.Guild.ID] = p
+}
+
 var (
 	state   = stateMap{}
 	session *discordgo.Session
@@ -41,6 +45,11 @@ func Transition(s *StateParams) error {
 }
 
 func createLink(m *StateParams) error {
-	session.ChannelMessageSend(m.User.ID, fmt.Sprint("To register for %s, click on the following link: %s"))
+	session.ChannelMessageSend(m.User.ID, fmt.Sprintf("To register for %s, click on the following link: %s", m.Guild.Name, "link"))
+	state.set(m, handleSuiteAuth)
+	return nil
+}
+
+func handleSuiteAuth(m *StateParams) error {
 	return nil
 }
