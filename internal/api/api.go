@@ -6,18 +6,20 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/uccnetsoc/whodis/docs"
 	"github.com/uccnetsoc/whodis/pkg/models"
+	"github.com/uccnetsoc/whodis/pkg/verify"
 )
 
 // @title Veribot API
 // @version 0.1
 // @description API to authorize users with given mail domain access to discord guilds
-func InitAPI() {
+func InitAPI(s *discordgo.Session) {
 	docs.SwaggerInfo.Title = viper.GetString("api.title")
 	docs.SwaggerInfo.Description = viper.GetString("api.description")
 	docs.SwaggerInfo.Version = viper.GetString("api.version")
@@ -47,6 +49,11 @@ func InitAPI() {
 		log.Println(user)
 		if user.MailDomain != "" && user.MailDomain == viper.GetString("mail.domain") {
 			// call discord bot to update role for discord id
+			id, err := c.Cookie("discord_id")
+			if err != nil {
+				log.Println(err)
+			}
+			verify.Transition(&verify.StateParams{})
 			c.String(http.StatusOK, "successfully authorized to access resource")
 			log.Println("nice")
 			return

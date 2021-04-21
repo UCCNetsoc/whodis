@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/spf13/viper"
 )
 
 type stateMap map[string]func(m *StateParams) error
@@ -45,7 +47,17 @@ func Transition(s *StateParams) error {
 }
 
 func createLink(m *StateParams) error {
-	session.ChannelMessageSend(m.User.ID, fmt.Sprintf("To register for %s, click on the following link: %s", m.Guild.Name, "link"))
+	channel, err := session.UserChannelCreate(m.User.ID)
+	if err != nil {
+		return err
+	}
+	claims := jwt.MapClaims{
+		"user_id":  m.User.ID,
+		"guild_id": m.Guild.ID,
+	}
+	client_token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := client_token.SignedString([]byte(viper.GetString("api.secret")))
+	session.ChannelMessageSend(channel.ID, fmt.Sprintf("To register for %s, click on the following link: http://%s/discord/auth?i=%s", m.Guild.Name, viper.GetString("api.hostname"), tokenString))
 	state.set(m, handleSuiteAuth)
 	return nil
 }

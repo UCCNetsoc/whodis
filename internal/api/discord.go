@@ -95,6 +95,15 @@ func discordAuthHandler(c *gin.Context) {
 		return
 	}
 
+	params, err := jwt.Parse(c.GetString("i"), func(token *jwt.Token) (interface{}, error) {
+		return []byte(viper.GetString("api.secret")), nil
+	})
+	if err != nil {
+		log.Println(err)
+		c.AbortWithError(http.StatusInternalServerError, err)
+	}
+
 	c.SetCookie("discord_id", tokenString, 0, "/", viper.GetString("api.hostname"), false, true)
+	c.SetCookie("discord_guild_id", params.Claims.(jwt.MapClaims)["guild_id"].(string), 0, "/", viper.GetString("api.hostname"), false, true)
 	c.Redirect(http.StatusTemporaryRedirect, "/google/login")
 }
