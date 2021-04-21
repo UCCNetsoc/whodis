@@ -9,7 +9,7 @@ import (
 type stateMap map[string]func(m *StateParams) error
 
 func (s stateMap) get(m *StateParams) (func(m *StateParams) error, bool) {
-	if m == nil {
+	if m.User == nil || m.Guild == nil {
 		return nil, false
 	}
 	out, ok := s[m.User.ID+m.Guild.ID]
