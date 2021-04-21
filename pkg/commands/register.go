@@ -1,10 +1,12 @@
 package commands
 
 import (
+	"log"
+
 	"github.com/bwmarrin/discordgo"
 )
 
-type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate)
+type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate) (string, error)
 
 type Commands struct {
 	commands []*discordgo.ApplicationCommand
@@ -28,7 +30,18 @@ func (c *Commands) Add(com *discordgo.ApplicationCommand, handler CommandHandler
 func (c *Commands) Register(s *discordgo.Session) error {
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if handler, ok := commands.handlers[i.Data.Name]; ok {
-			handler(s, i)
+			resp, err := handler(s, i)
+			if err != nil {
+				log.Println(err)
+			}
+			if resp != "" {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionApplicationCommandResponseData{
+						Content: resp,
+					},
+				})
+			}
 		}
 	})
 	for _, comm := range c.commands {

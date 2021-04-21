@@ -1,39 +1,23 @@
 package commands
 
 import (
-	"log"
-
 	"github.com/bwmarrin/discordgo"
 	"github.com/uccnetsoc/whodis/pkg/verify"
 )
 
 // VerifyCommand inits the verification process.
-func VerifyCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func VerifyCommand(s *discordgo.Session, i *discordgo.InteractionCreate) (string, error) {
 	guild, err := s.Guild(i.GuildID)
 	if err != nil {
 		switch err.(type) {
 		case *discordgo.RESTError:
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionApplicationCommandResponseData{
-					Content: "You must run this command in a server.",
-				},
-			})
-			log.Printf("User invalid guild %T", err)
-			return
+			return "You must run this command in a server.", err
 		default:
-			log.Println(err)
-			return
+			return "", err
 		}
 	}
 	if err = verify.Transition(&verify.StateParams{User: i.User, Guild: guild}); err != nil {
-		log.Println(err)
-		return
+		return "", err
 	}
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionApplicationCommandResponseData{
-			Content: "We have sent you a DM with instruction on how to continue the verification process",
-		},
-	})
+	return "We have sent you a DM with instruction on how to continue the verification process", nil
 }
