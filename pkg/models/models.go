@@ -32,11 +32,6 @@ func InitModels() {
 	DBClient = &Client{conn: db}
 }
 
-type User struct {
-	DiscordID  string `gorm:"primaryKey" json:"discord_id,omitempty"`
-	MailDomain string `json:"mail_domains,omitempty"`
-}
-
 type DiscordResp struct {
 	ID string `json:"id"`
 }

@@ -13,7 +13,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/uccnetsoc/whodis/docs"
 	"github.com/uccnetsoc/whodis/pkg/models"
-	"github.com/uccnetsoc/whodis/pkg/verify"
 )
 
 // @title Veribot API
@@ -47,17 +46,17 @@ func InitAPI(s *discordgo.Session) {
 		}
 		json.Unmarshal(body, &user)
 		log.Println(user)
-		if user.MailDomain != "" && user.MailDomain == viper.GetString("mail.domain") {
-			// call discord bot to update role for discord id
-			id, err := c.Cookie("discord_id")
-			if err != nil {
-				log.Println(err)
-			}
-			verify.Transition(&verify.StateParams{})
-			c.String(http.StatusOK, "successfully authorized to access resource")
-			log.Println("nice")
-			return
-		}
+		// if user.MailDomain != "" && user.MailDomain == viper.GetString("mail.domain") {
+		// 	// call discord bot to update role for discord id
+		// 	//id, err := c.Cookie("discord_id")
+		// 	//if err != nil {
+		// 	//	log.Println(err)
+		// 	//}
+		// 	verify.Transition(&verify.StateParams{})
+		// 	c.String(http.StatusOK, "successfully authorized to access resource")
+		// 	log.Println("nice")
+		// 	return
+		// }
 	})
 
 	r.Run(":8080")

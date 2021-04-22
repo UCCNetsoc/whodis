@@ -72,10 +72,6 @@ func discordAuthHandler(c *gin.Context) {
 	json.Unmarshal(body, &discordResp)
 
 	log.Println(discordResp.ID)
-	err = models.DBClient.CreateUser(discordResp.ID)
-	if err != nil {
-		log.Println(err)
-	}
 
 	// create JWT
 	expirationTime := time.Now().Add(time.Hour * 24 * 30).Unix()

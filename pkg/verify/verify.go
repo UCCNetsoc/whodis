@@ -6,6 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/spf13/viper"
+	"github.com/uccnetsoc/whodis/pkg/models"
 )
 
 type stateMap map[string]func(m *StateParams) error
@@ -18,8 +19,8 @@ func (s stateMap) get(m *StateParams) (func(m *StateParams) error, bool) {
 	return out, ok
 }
 
-func (s stateMap) set(m *StateParams, p func(m *StateParams) error) {
-	s[m.User.ID+m.Guild.ID] = p
+func (s stateMap) set(m *StateParams, p func(m *StateParams) error) error {
+	return models.DBClient.CreateUser(m.User.ID, m.Guild.ID)
 }
 
 var (
@@ -58,7 +59,9 @@ func createLink(m *StateParams) error {
 	client_token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := client_token.SignedString([]byte(viper.GetString("api.secret")))
 	session.ChannelMessageSend(channel.ID, fmt.Sprintf("To register for %s, click on the following link: http://%s/discord/auth?i=%s", m.Guild.Name, viper.GetString("api.hostname"), tokenString))
-	state.set(m, handleSuiteAuth)
+	if err = state.set(m, handleSuiteAuth); err != nil {
+		return err
+	}
 	return nil
 }
 

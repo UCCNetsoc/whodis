@@ -3,13 +3,13 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/uccnetsoc/whodis/pkg/models"
 
 	"github.com/spf13/viper"
 	"golang.org/x/oauth2"
@@ -89,7 +89,7 @@ func googleAuthHandler(c *gin.Context) {
 	}
 
 	if claims, ok := jwtToken.Claims.(jwt.MapClaims); ok && jwtToken.Valid {
-		models.DBClient.UpdateMailDomain(claims["ID"].(string), jsonResp["hd"].(string))
+		fmt.Println(claims)
 	}
 
 	c.Redirect(http.StatusTemporaryRedirect, "/")
