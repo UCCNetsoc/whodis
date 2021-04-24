@@ -59,7 +59,7 @@ func (c *Client) CreateUser(discord_id string, guild_id string) (string, error) 
 		}
 		return tx.Save(user).Error
 	})
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrInvalidValue) {
 		return c.CreateUser(discord_id, guild_id)
 	}
 	return short, err
