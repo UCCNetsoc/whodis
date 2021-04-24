@@ -8,6 +8,7 @@ func initDefaults() {
 	viper.SetDefault("api.version", "0.1")
 	viper.SetDefault("api.path", "/api/v1")
 	viper.SetDefault("api.hostname", "whodis.netsoc.cloud")
+	viper.SetDefault("api.sluglength", 5)
 
 	viper.SetDefault("discord.token", "")
 
