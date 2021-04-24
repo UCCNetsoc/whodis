@@ -91,15 +91,28 @@ func discordAuthHandler(c *gin.Context) {
 		return
 	}
 
-	params, err := jwt.Parse(c.GetString("i"), func(token *jwt.Token) (interface{}, error) {
-		return []byte(viper.GetString("api.secret")), nil
-	})
+	params, ok := c.Get("i")
+	if !ok {
+		log.Println("No params")
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	short, ok := params.(string)
+	if !ok {
+		log.Println("Param not string")
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	guild, err := models.DBClient.GetGuildFromShort(short)
 	if err != nil {
-		log.Println(err)
+		log.Println("Guild does not exist")
 		c.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 
 	c.SetCookie("discord_id", tokenString, 0, "/", viper.GetString("api.hostname"), false, true)
-	c.SetCookie("discord_guild_id", params.Claims.(jwt.MapClaims)["guild_id"].(string), 0, "/", viper.GetString("api.hostname"), false, true)
+	c.SetCookie("discord_guild_id", guild.ID, 0, "/", viper.GetString("api.hostname"), false, true)
 	c.Redirect(http.StatusTemporaryRedirect, "/google/login")
 }

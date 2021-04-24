@@ -49,7 +49,13 @@ func (c *Client) CreateUser(discord_id string, guild_id string) (string, error) 
 			user.Guilds = append(user.Guilds, &Guild{ID: guild_id, Short: short})
 		}
 		if err != nil {
-			return err
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				if err := tx.Create(user).Error; err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
 		}
 		return tx.Save(user).Error
 	})
@@ -57,4 +63,9 @@ func (c *Client) CreateUser(discord_id string, guild_id string) (string, error) 
 		return c.CreateUser(discord_id, guild_id)
 	}
 	return short, err
+}
+
+func (c *Client) GetGuildFromShort(short string) (*Guild, error) {
+	guild := &Guild{Short: short}
+	return guild, c.conn.First(guild).Error
 }

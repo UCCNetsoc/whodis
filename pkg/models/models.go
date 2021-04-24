@@ -28,7 +28,7 @@ func InitModels() {
 		panic(err)
 	}
 
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&User{}, &Guild{})
 	DBClient = &Client{conn: db}
 }
 
