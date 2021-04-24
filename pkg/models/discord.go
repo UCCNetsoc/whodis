@@ -34,8 +34,8 @@ func (c *Client) CreateUser(discord_id string, guild_id string) (string, error) 
 	user := &User{DiscordID: discord_id}
 	var short string
 	err := c.conn.Transaction(func(tx *gorm.DB) error {
-		short := randStringRunes(viper.GetInt("api.sluglength"))
-		if err := tx.Find(&Guild{}, "short = ?", short).Error; err != nil {
+		short = randStringRunes(viper.GetInt("api.sluglength"))
+		if err := tx.Find(&Guild{}, "short = ?", short).Error; !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 		err := c.conn.First(user).Preload("Guilds").Error
