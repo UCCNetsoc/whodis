@@ -69,3 +69,16 @@ func (c *Client) GetGuildFromShort(short string) (*Guild, error) {
 	guild := &Guild{Short: short}
 	return guild, c.conn.First(guild).Error
 }
+
+func (c *Client) GetGuildFromID(uid string, guid string) (*Guild, error) {
+	u := &User{DiscordID: uid}
+	if err := c.conn.First(u).Preload("Guilds").Error; err != nil {
+		return nil, err
+	}
+	for _, guild := range u.Guilds {
+		if guild.ID == guid {
+		return guild, nil
+		}
+	}
+	return nil, errors.New("Guild not found")
+}

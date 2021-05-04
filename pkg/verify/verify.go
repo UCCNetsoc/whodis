@@ -1,29 +1,30 @@
 package verify
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/spf13/viper"
 	"github.com/uccnetsoc/whodis/pkg/models"
+	"gorm.io/gorm"
 )
 
-type stateMap map[string]func(m *StateParams) error
-
-func (s stateMap) get(m *StateParams) (func(m *StateParams) error, bool) {
+func getState(m *StateParams) (guild *models.Guild, found bool, err error) {
 	if m.User == nil || m.Guild == nil {
-		return nil, false
+		err = errors.New("No user or guild set.")
+		return
 	}
-	out, ok := s[m.User.ID+m.Guild.ID]
-	return out, ok
+	guild, err = models.DBClient.GetGuildFromID(m.User.ID, m.Guild.ID)
+	found = !errors.Is(err, gorm.ErrRecordNotFound)
+	return
 }
 
-func (s stateMap) set(m *StateParams, p func(m *StateParams) error) (string, error) {
+func setState(m *StateParams, p func(m *StateParams) error) (string, error) {
 	return models.DBClient.CreateUser(m.User.ID, m.Guild.ID)
 }
 
 var (
-	state   = stateMap{}
 	session *discordgo.Session
 )
 
@@ -38,10 +39,14 @@ type StateParams struct {
 
 // Transition from one state to another base on the decision tree.
 func Transition(s *StateParams) error {
-	if handler, ok := state.get(s); ok {
-		handler(s)
-	} else if err := createLink(s); err != nil {
+	guild, found, err := getState(s)
+	switch {
+	case !found:
+		return createLink(s)
+	case err != nil:
 		return err
+	case guild.Verified:
+		return handleSuiteAuth(s)
 	}
 	return nil
 }
@@ -51,7 +56,7 @@ func createLink(m *StateParams) error {
 	if err != nil {
 		return err
 	}
-	short, err := state.set(m, handleSuiteAuth)
+	short, err := setState(m, handleSuiteAuth)
 	if err != nil {
 		return err
 	}
