@@ -77,8 +77,8 @@ func (c *Client) GetGuildFromID(uid string, guid string) (*Guild, error) {
 	}
 	for _, guild := range u.Guilds {
 		if guild.ID == guid {
-		return guild, nil
+			return guild, nil
 		}
 	}
-	return nil, errors.New("Guild not found")
+	return nil, gorm.ErrRecordNotFound
 }
