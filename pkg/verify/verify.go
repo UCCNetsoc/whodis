@@ -12,7 +12,7 @@ import (
 
 func getState(m *StateParams) (guild *models.Guild, found bool, err error) {
 	if m.User == nil || m.Guild == nil {
-		err = errors.New("No user or guild set.")
+		err = errors.New("no user or guild set")
 		return
 	}
 	guild, err = models.DBClient.GetGuildFromID(m.User.ID, m.Guild.ID)

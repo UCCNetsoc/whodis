@@ -6,6 +6,33 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// RegisterSlashCommands adds all slash commands to the session.
+func RegisterSlashCommands(s *discordgo.Session) {
+	commands.Add(
+		&discordgo.ApplicationCommand{
+			Name:        "verify",
+			Description: "Start the verification process to get into the current server.",
+		},
+		VerifyCommand,
+	)
+	commands.Add(
+		&discordgo.ApplicationCommand{
+			Name:        "config",
+			Description: "Configure whodis for the current server.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "set",
+					Description: "Set a config option for the current server.",
+					Options:     configOptions,
+				},
+			},
+		},
+		ConfigCommand,
+	)
+	commands.Register(s)
+}
+
 type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate) (string, error)
 
 type Commands struct {
@@ -32,7 +59,14 @@ func (c *Commands) Register(s *discordgo.Session) error {
 		if handler, ok := commands.handlers[i.Data.Name]; ok {
 			resp, err := handler(s, i)
 			if err != nil {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionApplicationCommandResponseData{
+						Content: "An error occured processing the current command.",
+					},
+				})
 				log.Println(err)
+				return
 			}
 			if resp != "" {
 				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -50,16 +84,4 @@ func (c *Commands) Register(s *discordgo.Session) error {
 		}
 	}
 	return nil
-}
-
-// RegisterSlashCommands adds all slash commands to the session.
-func RegisterSlashCommands(s *discordgo.Session) {
-	commands.Add(
-		&discordgo.ApplicationCommand{
-			Name:        "verify",
-			Description: "Start the verification process to get into the current server.",
-		},
-		VerifyCommand,
-	)
-	commands.Register(s)
 }

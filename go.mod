@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
 	github.com/bwmarrin/discordgo v0.23.3-0.20210312144535-ba10a00fbcfa
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
