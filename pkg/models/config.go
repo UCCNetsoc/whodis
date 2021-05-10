@@ -13,14 +13,15 @@ import (
 type Config struct {
 	gorm.Model
 	GuildID        string `gorm:"primaryKey"`
-	Roles          []string
+	Roles          []ConfigItem `gorm:"foreignKey:ID"`
 	WelcomeChannel string
-	Domains        []ConfigItem
+	Domains        []ConfigItem `gorm:"foreignKey:ID"`
+
 }
 
 type ConfigItem struct {
 	gorm.Model
-	value string
+	Value string
 }
 
 func (c *Client) SetConfigItem(guid string, key string, value interface{}) error {
@@ -46,7 +47,7 @@ func (c *Client) SetConfigItem(guid string, key string, value interface{}) error
 			}
 			items := []ConfigItem{}
 			for _, v := range valueStr {
-				items = append(items, ConfigItem{value: v})
+				items = append(items, ConfigItem{Value: v})
 			}
 			return tx.Set(key, items).Error
 		} else {

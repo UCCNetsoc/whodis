@@ -40,8 +40,9 @@ func ConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) (string
 				}
 			}
 			if err := models.DBClient.SetConfigItem(i.GuildID, name, value); err != nil {
-				return "", err
+				return "Internal error occured.", err
 			}
+			return fmt.Sprintf("Config parameter `%s` set.", name), nil
 		}
 	}
 	return "No parameter provided.", nil
