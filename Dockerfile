@@ -1,4 +1,4 @@
-FROM golang:1.16-alpine as doc
+FROM golang:1.17-alpine as doc
 
 WORKDIR /doc
 
@@ -11,7 +11,7 @@ RUN go get github.com/swaggo/swag/cmd/swag
 RUN $GOPATH/bin/swag init -g internal/api/api.go
 
 
-FROM golang:1.16-alpine AS dev
+FROM golang:1.17-alpine AS dev
 
 WORKDIR /app
 
