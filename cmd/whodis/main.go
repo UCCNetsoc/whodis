@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/uccnetsoc/whodis/config"
 	"github.com/uccnetsoc/whodis/internal/api"
+	"github.com/uccnetsoc/whodis/pkg/commands"
 )
 
 func main() {
@@ -23,9 +24,9 @@ func main() {
 		return
 	}
 	go api.InitAPI(s)
-	// verify.Init(s)
+
 	s.Open()
-	// commands.RegisterSlashCommands(s)
+	commands.RegisterSlashCommands(s)
 	log.Println("Bot is running")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
