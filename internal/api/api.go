@@ -1,54 +1,77 @@
 package api
 
 import (
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/uccnetsoc/whodis/docs"
+	"github.com/uccnetsoc/whodis/pkg/utils"
 )
 
 // @title Veribot API
 // @version 0.1
 // @description API to authorize users with given mail domain access to discord guilds
 func InitAPI(s *discordgo.Session) {
-	docs.SwaggerInfo.Title = viper.GetString("api.title")
-	docs.SwaggerInfo.Description = viper.GetString("api.description")
-	docs.SwaggerInfo.Version = viper.GetString("api.version")
-	docs.SwaggerInfo.BasePath = viper.GetString("api.path")
-	docs.SwaggerInfo.Host = viper.GetString("api.hostname")
-
 	r := gin.Default()
 
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	r.GET("/google/login", middleware(), googleLoginHandler)
+	r.GET("/google/login", googleLoginHandler)
 	r.GET("/google/auth", googleAuthHandler)
 
-	// r.POST("/verify", func(c *gin.Context) {
-	// 	var user *models.User
-	// 	body, err := ioutil.ReadAll(c.Request.Body)
-	// 	log.Println(string(body))
-	// 	if err != nil {
-	// 		log.Println("ERROR parsing json body\n", err)
-	// 		c.String(http.StatusBadRequest, "bad request body")
-	// 		return
-	// 	}
-	// 	json.Unmarshal(body, &user)
-	// 	log.Println(user)
-	// 	// if user.MailDomain != "" && user.MailDomain == viper.GetString("mail.domain") {
-	// 	// 	// call discord bot to update role for discord id
-	// 	// 	//id, err := c.Cookie("discord_id")
-	// 	// 	//if err != nil {
-	// 	// 	//	log.Println(err)
-	// 	// 	//}
-	// 	// 	verify.Transition(&verify.StateParams{})
-	// 	// 	c.String(http.StatusOK, "successfully authorized to access resource")
-	// 	// 	log.Println("nice")
-	// 	// 	return
-	// 	// }
-	// })
+	r.GET("/discord/auth", func(c *gin.Context) {
+		c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("/google/login?state=%s", c.Query("state")))
+	})
 
+	r.GET("/verify", func(c *gin.Context) {
+		encodedDigest := c.Query("state")
+		if len(encodedDigest) == 0 {
+			log.Println("Error parsing discord digest")
+			c.Writer.WriteString("Error parsing discord digest")
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		decodedDigest, err := utils.Decrypt(encodedDigest, []byte(viper.GetString("api.secret")))
+		if err != nil {
+			log.Println("Error decoding discord digest\n", err)
+			c.Writer.WriteString("Error decoding discord digest")
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		encodedData := strings.Split(decodedDigest, ".")
+		encodedUID, encodedGID := encodedData[0], encodedData[1]
+		decodedUID, err := utils.Decrypt(encodedUID, []byte(viper.GetString("api.secret")))
+		if err != nil {
+			log.Println("Error decoding discord userID\n", err)
+			c.Writer.WriteString("Error decoding discord userID")
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		decodedGID, err := utils.Decrypt(encodedGID, []byte(viper.GetString("api.secret")))
+		if err != nil {
+			log.Println("Error decoding discord guildID\n", err)
+			c.Writer.WriteString("Error decoding discord guildID")
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		roleID := ""
+		roles, _ := s.GuildRoles(decodedGID)
+		for _, role := range roles {
+			if role.Name == "Member" {
+				roleID = role.ID
+			}
+		}
+		if roleID == "" {
+			log.Println("Error finding `Member` role")
+			c.Writer.WriteString("Error finding `Member` role")
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		s.GuildMemberRoleAdd(decodedGID, decodedUID, roleID)
+		c.Status(200)
+		c.Writer.WriteString("Success")
+	})
 	r.Run(":8080")
 }
