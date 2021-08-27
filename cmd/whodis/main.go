@@ -23,8 +23,12 @@ func main() {
 		log.Fatal(err)
 		return
 	}
+	s.StateEnabled = true
+	s.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 	go api.InitAPI(s)
-
+	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+		log.Println("Bot is starting")
+	})
 	s.Open()
 	commands.RegisterSlashCommands(s)
 	log.Println("Bot is running")

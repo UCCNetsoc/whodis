@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/spf13/viper"
@@ -57,9 +58,24 @@ func VerifyCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 	})
-
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	time.AfterFunc(time.Second*15, func() {
+		_, err = s.InteractionResponseEdit(s.State.User.ID, i.Interaction, &discordgo.WebhookEdit{
+			Components: []discordgo.MessageComponent{
+				discordgo.ActionsRow{
+					Components: []discordgo.MessageComponent{
+						discordgo.Button{
+							Label:    "Button has timed out, use /verify to try again!",
+							Style:    discordgo.LinkButton,
+							Disabled: true,
+							URL:      "https://netsoc.co/rk",
+						},
+					},
+				},
+			},
+		})
+	})
 }

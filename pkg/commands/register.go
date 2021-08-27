@@ -13,6 +13,13 @@ func RegisterSlashCommands(s *discordgo.Session) {
 		},
 		VerifyCommand,
 	)
+	commands.Add(
+		&discordgo.ApplicationCommand{
+			Name:        "status",
+			Description: "Verify that the Whodis bot and your server are both in working order.",
+		},
+		StatusCommand,
+	)
 	commands.Register(s)
 }
 
@@ -44,7 +51,7 @@ func (c *Commands) Register(s *discordgo.Session) error {
 		}
 	})
 	for _, comm := range c.commands {
-		if _, err := s.ApplicationCommandCreate(s.State.User.ID, "", comm); err != nil {
+		if _, err := s.ApplicationCommandCreate("879010291126517810", "875053603012870215", comm); err != nil {
 			return err
 		}
 	}
