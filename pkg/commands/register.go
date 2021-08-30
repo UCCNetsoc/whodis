@@ -1,6 +1,10 @@
 package commands
 
 import (
+	"context"
+
+	"github.com/Strum355/log"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -23,7 +27,7 @@ func RegisterSlashCommands(s *discordgo.Session) {
 	commands.Register(s)
 }
 
-type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate)
+type CommandHandler func(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate)
 
 type Commands struct {
 	commands []*discordgo.ApplicationCommand
@@ -46,9 +50,7 @@ func (c *Commands) Add(com *discordgo.ApplicationCommand, handler CommandHandler
 // Register all slash commands.
 func (c *Commands) Register(s *discordgo.Session) error {
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if handler, ok := commands.handlers[i.ApplicationCommandData().Name]; ok {
-			handler(s, i)
-		}
+		callHandler(s, i)
 	})
 	for _, comm := range c.commands {
 		if _, err := s.ApplicationCommandCreate("879010291126517810", "875053603012870215", comm); err != nil {
@@ -56,4 +58,41 @@ func (c *Commands) Register(s *discordgo.Session) error {
 		}
 	}
 	return nil
+}
+
+// Call command handler.
+func callHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	ctx := context.Background()
+	commandAuthor, err := checkDirectMessage(i.Interaction)
+	if err != nil {
+		log.WithError(err).Error("Failed to invoke command")
+		interactionResponseError(s, i, err.Error(), true)
+		return
+	}
+	pCheck, rCheck := statusCheck(s, i)
+	if !pCheck || !rCheck {
+		log.Error("Invalid bot permissions")
+		interactionResponseError(s, i, "Server setup not complete, please use the /status command.", true)
+		return
+	}
+	channel, err := s.Channel(i.ChannelID)
+	if err != nil {
+		log.WithError(err).Error("Couldn't query channel")
+		return
+	}
+
+	commandName := i.ApplicationCommandData().Name
+	if handler, ok := commands.handlers[commandName]; ok {
+		ctx := context.WithValue(ctx, log.Key, log.Fields{
+			"author_id":    commandAuthor.ID,
+			"channel_id":   i.ChannelID,
+			"guild_id":     i.GuildID,
+			"user":         commandAuthor.Username,
+			"channel_name": channel.Name,
+			"command":      commandName,
+		})
+		log.WithContext(ctx).Info("invoking standard command")
+		handler(ctx, s, i)
+		return
+	}
 }
