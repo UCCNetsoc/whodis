@@ -53,7 +53,7 @@ func (c *Commands) Register(s *discordgo.Session) error {
 		callHandler(s, i)
 	})
 	for _, comm := range c.commands {
-		if _, err := s.ApplicationCommandCreate("879010291126517810", "875053603012870215", comm); err != nil {
+		if _, err := s.ApplicationCommandCreate(s.State.User.ID, "", comm); err != nil {
 			return err
 		}
 	}
