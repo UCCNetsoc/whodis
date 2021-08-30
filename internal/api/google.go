@@ -2,8 +2,9 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+
+	"github.com/Strum355/log"
 
 	"github.com/gin-gonic/gin"
 
@@ -33,7 +34,7 @@ func googleLoginHandler(c *gin.Context) {
 
 func googleAuthHandler(c *gin.Context) {
 	if c.Query("hd") != "umail.ucc.ie" {
-		log.Println("Invalid umail address")
+		log.Error("Invalid umail address")
 		c.Writer.WriteString("Invalid umail address")
 		c.Status(http.StatusNotAcceptable)
 		return
