@@ -11,6 +11,7 @@ require (
 
 require (
 	cloud.google.com/go v0.46.3 // indirect
+	github.com/Strum355/log v1.1.0
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
@@ -42,3 +43,5 @@ require (
 	gopkg.in/ini.v1 v1.51.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
+
+require github.com/opentracing/opentracing-go v1.1.0 // indirect
