@@ -55,6 +55,7 @@ func InitAPI(s *discordgo.Session) {
 		for _, role := range roles {
 			if role.Name == "Member" {
 				roleID = role.ID
+				break
 			}
 		}
 		if roleID == "" {
