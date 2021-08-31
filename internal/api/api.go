@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -21,7 +20,7 @@ func InitAPI(s *discordgo.Session) {
 	r.GET("/google/auth", googleAuthHandler)
 
 	r.GET("/discord/auth", func(c *gin.Context) {
-		c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("/google/login?state=%s", c.Query("state")))
+		c.Redirect(http.StatusTemporaryRedirect, "/google/login?state="+c.Query("state"))
 	})
 
 	r.GET("/verify", func(c *gin.Context) {
@@ -48,7 +47,11 @@ func InitAPI(s *discordgo.Session) {
 			return
 		}
 		roleID := ""
-		roles, _ := s.GuildRoles(decodedGID)
+		roles, err := s.GuildRoles(decodedGID)
+		if err != nil {
+			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error getting guild roles", err))
+			return
+		}
 		for _, role := range roles {
 			if role.Name == "Member" {
 				roleID = role.ID
