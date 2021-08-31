@@ -1,10 +1,7 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
-
-	"github.com/Strum355/log"
 
 	"github.com/gin-gonic/gin"
 
@@ -20,7 +17,7 @@ func InitGoogleOAuth() {
 	googleConf = &oauth2.Config{
 		ClientID:     viper.GetString("oauth.google.id"),
 		ClientSecret: viper.GetString("oauth.google.secret"),
-		RedirectURL:  "http://" + viper.GetString("api.hostname") + ":8080" + "/google/auth",
+		RedirectURL:  "http://" + viper.GetString("api.hostname") + ":" + viper.GetString("api.port") + "/google/auth",
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.email",
 		},
@@ -34,10 +31,8 @@ func googleLoginHandler(c *gin.Context) {
 
 func googleAuthHandler(c *gin.Context) {
 	if c.Query("hd") != "umail.ucc.ie" {
-		log.Error("Invalid umail address")
-		c.Writer.WriteString("Invalid umail address")
-		c.Status(http.StatusNotAcceptable)
-		return
+		c.JSON(AccessErrorResponse(http.StatusBadRequest, "Invalid umail address", nil))
+	} else {
+		c.Redirect(http.StatusTemporaryRedirect, "/verify?state=%s"+c.Query("state"))
 	}
-	c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("/verify?state=%s", c.Query("state")))
 }
