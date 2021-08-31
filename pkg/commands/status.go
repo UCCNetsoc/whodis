@@ -8,6 +8,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+const (
+	statusOK    string = "✅"
+	statusError string = "❌"
+)
+
 // StatusCommand checks for server compatibility issues.
 func StatusCommand(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) {
 	user := i.Member.User
@@ -36,45 +41,40 @@ func StatusCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 	}
 }
 
-func createStatusEmbed(s *discordgo.Session, i *discordgo.InteractionCreate) (emb *discordgo.MessageEmbed) {
-	permissionCheck, roleCheck := statusCheck(s, i)
-	permissionMsg, roleMsg := "✅", "❌"
-	if !permissionCheck {
-		permissionMsg = "❌"
-	}
-	if roleCheck {
-		roleMsg = "✅"
-	}
-	emb = &discordgo.MessageEmbed{
+func createStatusEmbed(s *discordgo.Session, i *discordgo.InteractionCreate) *discordgo.MessageEmbed {
+	statusEmote := map[bool]string{true: statusOK, false: statusError}
+	return &discordgo.MessageEmbed{
 		Title: "Whodis Setup Status",
 		Fields: []*discordgo.MessageEmbedField{
 			{
 				Name:  "Permission to manage roles:",
-				Value: permissionMsg,
+				Value: statusEmote[permissionCheck(s, i)],
 			},
 			{
 				Name:  "Access to Member role:",
-				Value: roleMsg,
+				Value: statusEmote[roleCheck(s, i)],
 			},
 		},
 	}
-	return
 }
 
-func statusCheck(s *discordgo.Session, i *discordgo.InteractionCreate) (bool, bool) {
-	permissionCheck, roleCheck := true, false
+func permissionCheck(s *discordgo.Session, i *discordgo.InteractionCreate) bool {
 	p, err := s.State.UserChannelPermissions(s.State.User.ID, i.ChannelID)
 	if err != nil {
-		permissionCheck = false
+		return false
 	}
 	if p&discordgo.PermissionManageRoles != discordgo.PermissionManageRoles {
-		permissionCheck = false
+		return false
 	}
+	return true
+}
+
+func roleCheck(s *discordgo.Session, i *discordgo.InteractionCreate) bool {
 	roles, _ := s.GuildRoles(i.GuildID)
 	for _, role := range roles {
 		if role.Name == "Member" {
-			roleCheck = true
+			return true
 		}
 	}
-	return permissionCheck, roleCheck
+	return false
 }

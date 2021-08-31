@@ -69,8 +69,7 @@ func callHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		interactionResponseError(s, i, err.Error(), true)
 		return
 	}
-	pCheck, rCheck := statusCheck(s, i)
-	if !pCheck || !rCheck {
+	if !permissionCheck(s, i) || !roleCheck(s, i) {
 		log.Error("Invalid bot permissions")
 		interactionResponseError(s, i, "Server setup not complete, please use the /status command.", true)
 		return
