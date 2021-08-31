@@ -2,8 +2,7 @@ package commands
 
 import (
 	"context"
-
-	"github.com/Strum355/log"
+	"errors"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -14,18 +13,14 @@ const (
 )
 
 // StatusCommand checks for server compatibility issues.
-func StatusCommand(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) {
+func StatusCommand(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) *interactionError {
 	user := i.Member.User
 	p, err := s.State.UserChannelPermissions(user.ID, i.ChannelID)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("Could not get user permissions.")
-		interactionResponseError(s, i, err.Error(), true)
-		return
+		return &interactionError{err, "Could not get user permissions"}
 	}
 	if p&discordgo.PermissionManageRoles != discordgo.PermissionManageRoles {
-		log.Error("User has invalid permissions")
-		interactionResponseError(s, i, "You do not have valid permissions to use this command.", true)
-		return
+		return &interactionError{errors.New("User has invalid permissions"), "You do not have valid permissions to use this command"}
 	}
 	response := &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -35,10 +30,9 @@ func StatusCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 	}
 	err = s.InteractionRespond(i.Interaction, response)
 	if err != nil {
-		log.WithError(err)
-		interactionResponseError(s, i, err.Error(), true)
-		return
+		return &interactionError{err, err.Error()}
 	}
+	return nil
 }
 
 func createStatusEmbed(s *discordgo.Session, i *discordgo.InteractionCreate) *discordgo.MessageEmbed {
