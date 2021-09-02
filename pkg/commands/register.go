@@ -1,7 +1,10 @@
 package commands
 
 import (
-	"log"
+	"context"
+	"errors"
+
+	"github.com/Strum355/log"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -17,23 +20,15 @@ func RegisterSlashCommands(s *discordgo.Session) {
 	)
 	commands.Add(
 		&discordgo.ApplicationCommand{
-			Name:        "config",
-			Description: "Configure whodis for the current server.",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Type:        discordgo.ApplicationCommandOptionSubCommand,
-					Name:        "set",
-					Description: "Set a config option for the current server.",
-					Options:     configOptions,
-				},
-			},
+			Name:        "status",
+			Description: "Verify that the Whodis bot and your server are both in working order.",
 		},
-		ConfigCommand,
+		StatusCommand,
 	)
 	commands.Register(s)
 }
 
-type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate) (string, error)
+type CommandHandler func(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) *interactionError
 
 type Commands struct {
 	commands []*discordgo.ApplicationCommand
@@ -56,32 +51,62 @@ func (c *Commands) Add(com *discordgo.ApplicationCommand, handler CommandHandler
 // Register all slash commands.
 func (c *Commands) Register(s *discordgo.Session) error {
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if handler, ok := commands.handlers[i.Data.Name]; ok {
-			resp, err := handler(s, i)
-			if err != nil {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionApplicationCommandResponseData{
-						Content: "An error occured processing the current command.",
-					},
-				})
-				log.Println(err)
-				return
-			}
-			if resp != "" {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionApplicationCommandResponseData{
-						Content: resp,
-					},
-				})
-			}
-		}
+		callHandler(s, i)
 	})
 	for _, comm := range c.commands {
 		if _, err := s.ApplicationCommandCreate(s.State.User.ID, "", comm); err != nil {
+			log.WithError(err).Error("Failed to create command")
 			return err
 		}
 	}
 	return nil
+}
+
+func checkDirectMessage(i *discordgo.InteractionCreate) (*discordgo.User, *interactionError) {
+	if i.GuildID == "" {
+		return nil, &interactionError{
+			errors.New("Command invoked outside of valid guild"),
+			"This command is only available from inside a valid server",
+		}
+	}
+	return i.Member.User, nil
+}
+
+// Call command handler.
+func callHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	var iError *interactionError
+	ctx := context.Background()
+	commandAuthor, iError := checkDirectMessage(i)
+	if iError != nil {
+		iError.Handle(s, i)
+		return
+	}
+	if !permissionCheck(s, i) || !roleCheck(s, i) {
+		iError = &interactionError{errors.New("Invalid bot permissions"), "Server setup not complete, please use the /status command"}
+		iError.Handle(s, i)
+		return
+	}
+	channel, err := s.Channel(i.ChannelID)
+	if err != nil {
+		iError = &interactionError{err, "Couldn't query channel"}
+		iError.Handle(s, i)
+		return
+	}
+
+	commandName := i.ApplicationCommandData().Name
+	if handler, ok := commands.handlers[commandName]; ok {
+		ctx := context.WithValue(ctx, log.Key, log.Fields{
+			"author_id":    commandAuthor.ID,
+			"channel_id":   i.ChannelID,
+			"guild_id":     i.GuildID,
+			"user":         commandAuthor.Username,
+			"channel_name": channel.Name,
+			"command":      commandName,
+		})
+		log.WithContext(ctx).Info("Invoking standard command")
+		iError = handler(ctx, s, i)
+		if iError != nil {
+			iError.Handle(s, i)
+		}
+	}
 }

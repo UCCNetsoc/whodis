@@ -1,27 +1,75 @@
 package commands
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
 	"github.com/bwmarrin/discordgo"
-	"github.com/uccnetsoc/whodis/pkg/verify"
+	"github.com/spf13/viper"
+	"github.com/uccnetsoc/whodis/pkg/utils"
 )
 
 // VerifyCommand inits the verification process.
-func VerifyCommand(s *discordgo.Session, i *discordgo.InteractionCreate) (string, error) {
-	guild, err := s.Guild(i.GuildID)
-	if err != nil {
-		switch err.(type) {
-		case *discordgo.RESTError:
-			return "You must run this command in a server.", err
-		default:
-			return "", err
+func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) *interactionError {
+	user := i.Member.User
+	guild, _ := s.Guild(i.GuildID)
+	for _, roleID := range i.Member.Roles {
+		role, _ := s.State.Role(i.GuildID, roleID)
+		if role.Name == "Member" {
+			return &interactionError{errors.New("`Member` role is already assigned to user"), "This user is already assigned the `Member` role"}
 		}
 	}
-	user := i.Member.User
-	if user == nil {
-		user = i.User
+	uid, err := utils.Encrypt(user.ID, []byte(viper.GetString("api.secret")))
+	if err != nil {
+		return &interactionError{err, "Failed to encrypt userID"}
 	}
-	if err = verify.Transition(&verify.StateParams{User: user, Guild: guild}); err != nil {
-		return "", err
+	gid, err := utils.Encrypt(guild.ID, []byte(viper.GetString("api.secret")))
+	if err != nil {
+		return &interactionError{err, "Failed to encrypt guildID"}
 	}
-	return "We have sent you a DM with instruction on how to continue the verification process", nil
+	encoded, err := utils.Encrypt(fmt.Sprintf("%s.%s", uid, gid), []byte(viper.GetString("api.secret")))
+	if err != nil {
+		return &interactionError{err, "Failed to encrypt user info digest"}
+	}
+	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: fmt.Sprintf("Hey **%s**! Welcome to **%s**!", user.Username, guild.Name),
+			Flags:   1 << 6, // Whisper Flag
+			Components: []discordgo.MessageComponent{
+				discordgo.ActionsRow{
+					Components: []discordgo.MessageComponent{
+						discordgo.Button{
+							Label:    "Click here to register",
+							Style:    discordgo.LinkButton,
+							Disabled: false,
+							URL:      viper.GetString("api.host") + "/discord/auth?state=" + encoded,
+						},
+					},
+				},
+			},
+		},
+	})
+	if err != nil {
+		return &interactionError{err, "Unable to respond to interaction"}
+	}
+	time.AfterFunc(time.Second*15, func() {
+		s.InteractionResponseEdit(s.State.User.ID, i.Interaction, &discordgo.WebhookEdit{
+			Components: []discordgo.MessageComponent{
+				discordgo.ActionsRow{
+					Components: []discordgo.MessageComponent{
+						discordgo.Button{
+							Label:    "Button has timed out, use /verify to try again!",
+							Style:    discordgo.LinkButton,
+							Disabled: true,
+							URL:      "https://netsoc.co/rk",
+						},
+					},
+				},
+			},
+		})
+	})
+	return nil
 }

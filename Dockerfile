@@ -1,21 +1,7 @@
-FROM golang:1.16-alpine as doc
 
-WORKDIR /doc
-
-COPY . .
-
-# Generate OpenAPI docs
-
-RUN go get github.com/swaggo/swag/cmd/swag
-
-RUN $GOPATH/bin/swag init -g internal/api/api.go
-
-
-FROM golang:1.16-alpine AS dev
+FROM golang:1.17-alpine AS dev
 
 WORKDIR /app
-
-COPY --from=doc /doc .
 
 RUN apk add git
 
@@ -25,6 +11,8 @@ COPY go.mod .
 COPY go.sum .
 
 RUN go mod download
+
+COPY . .
 
 # Compile
 RUN go install github.com/uccnetsoc/whodis/cmd/whodis
