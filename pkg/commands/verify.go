@@ -45,7 +45,7 @@ func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 							Label:    "Click here to register",
 							Style:    discordgo.LinkButton,
 							Disabled: false,
-							URL:      viper.GetString("api.host") + "/discord/auth?state=" + encoded,
+							URL:      viper.GetString("api.url") + "/discord/auth?state=" + encoded,
 						},
 					},
 				},

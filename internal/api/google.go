@@ -17,7 +17,7 @@ func InitGoogleOAuth() {
 	googleConf = &oauth2.Config{
 		ClientID:     viper.GetString("oauth.google.id"),
 		ClientSecret: viper.GetString("oauth.google.secret"),
-		RedirectURL:  viper.GetString("api.host") + ":" + viper.GetString("api.port") + "/google/auth",
+		RedirectURL:  viper.GetString("api.url") + ":" + viper.GetString("api.port") + "/google/auth",
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.email",
 		},
