@@ -1,4 +1,3 @@
-
 FROM golang:1.17-alpine AS dev
 
 WORKDIR /app
@@ -14,11 +13,9 @@ RUN go mod download
 
 COPY . .
 
-# Compile
-RUN go install github.com/uccnetsoc/whodis/cmd/whodis
+RUN go install github.com/UCCNetsoc/whodis/cmd/whodis
 
-CMD ["go", "run", "*.go"]
-
+CMD [ "go", "run", "*.go" ]
 
 FROM alpine
 
@@ -26,4 +23,4 @@ WORKDIR /bin
 
 COPY --from=dev /go/bin/whodis ./whodis
 
-CMD ["sh", "-c", "whodis"]
+CMD ["sh", "-c", "whodis -p"]
