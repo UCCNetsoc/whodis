@@ -59,12 +59,12 @@ func InitAPI(s *discordgo.Session) {
 			}
 		}
 		if roleID == "" {
-			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error finding `Member` role", nil))
+			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error finding Member role", nil))
 			return
 		}
 		err = s.GuildMemberRoleAdd(decodedGID, decodedUID, roleID)
 		if err != nil {
-			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error adding `Member` role to user", err))
+			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error adding Member role to user", err))
 			return
 		}
 		c.JSON(AccessSuccessResponse("Role has been added to user", decodedUID, decodedGID, roleID))
