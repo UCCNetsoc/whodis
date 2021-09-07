@@ -35,7 +35,6 @@ func main() {
 		log.WithError(err)
 		return
 	}
-	s.StateEnabled = true
 	go api.InitAPI(s)
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Info("Bot is has registered handlers")

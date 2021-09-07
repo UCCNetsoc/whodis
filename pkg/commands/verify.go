@@ -14,11 +14,22 @@ import (
 // VerifyCommand inits the verification process.
 func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) *interactionError {
 	user := i.Member.User
-	guild, _ := s.Guild(i.GuildID)
+	guild, err := s.Guild(i.GuildID)
+	if err != nil {
+		return &interactionError{err, "Failed to get guild from guildID"}
+	}
+	guildRoleNames := map[string]string{}
+	guildRoles, err := s.GuildRoles(i.GuildID)
+	if err != nil {
+		return &interactionError{err, "Failed to get guildRoles from guildID"}
+	}
+	for _, guildRole := range guildRoles {
+		guildRoleNames[guildRole.ID] = guildRole.Name
+	}
 	for _, roleID := range i.Member.Roles {
-		role, _ := s.State.Role(i.GuildID, roleID)
-		if role.Name == "Member" {
-			return &interactionError{errors.New("`Member` role is already assigned to user"), "This user is already assigned the `Member` role"}
+		roleName, ok := guildRoleNames[roleID]
+		if ok && roleName == "Member" {
+			return &interactionError{errors.New("Member role is already assigned to user"), "This user is already assigned the `Member` role"}
 		}
 	}
 	uid, err := utils.Encrypt(user.ID, []byte(viper.GetString("api.secret")))
