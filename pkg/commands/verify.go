@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/UCCNetsoc/whodis/pkg/utils"
 	"github.com/bwmarrin/discordgo"
 	"github.com/spf13/viper"
-	"github.com/uccnetsoc/whodis/pkg/utils"
 )
 
 // VerifyCommand inits the verification process.

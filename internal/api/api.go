@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/UCCNetsoc/whodis/pkg/utils"
 	"github.com/bwmarrin/discordgo"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
-	"github.com/uccnetsoc/whodis/pkg/utils"
 )
 
 // @title Whodis API

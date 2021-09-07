@@ -1,4 +1,4 @@
-module github.com/uccnetsoc/whodis
+module github.com/UCCNetsoc/whodis
 
 go 1.17
 

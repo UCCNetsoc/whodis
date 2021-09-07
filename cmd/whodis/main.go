@@ -7,11 +7,11 @@ import (
 
 	"github.com/Strum355/log"
 
+	"github.com/UCCNetsoc/whodis/config"
+	"github.com/UCCNetsoc/whodis/internal/api"
+	"github.com/UCCNetsoc/whodis/pkg/commands"
 	"github.com/bwmarrin/discordgo"
 	"github.com/spf13/viper"
-	"github.com/uccnetsoc/whodis/config"
-	"github.com/uccnetsoc/whodis/internal/api"
-	"github.com/uccnetsoc/whodis/pkg/commands"
 )
 
 func main() {
@@ -29,7 +29,7 @@ func main() {
 	s.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 	go api.InitAPI(s)
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
-		log.Info("Bot is starting")
+		log.Info("Bot is registering handlers")
 	})
 	s.Open()
 	commands.RegisterSlashCommands(s)
