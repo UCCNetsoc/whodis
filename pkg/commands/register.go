@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/Strum355/log"
+	"github.com/spf13/viper"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -54,7 +55,7 @@ func (c *Commands) Register(s *discordgo.Session) error {
 		callHandler(s, i)
 	})
 	for _, comm := range c.commands {
-		if _, err := s.ApplicationCommandCreate(s.State.User.ID, "", comm); err != nil {
+		if _, err := s.ApplicationCommandCreate(viper.GetString("discord.app.id"), "", comm); err != nil {
 			log.WithError(err).Error("Failed to create command")
 			return err
 		}
