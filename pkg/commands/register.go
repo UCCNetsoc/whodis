@@ -82,7 +82,7 @@ func callHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 	commandName := i.ApplicationCommandData().Name
-	if commandName != "status" && (!permissionCheck(s, i) || !roleCheck(s, i)) {
+	if commandName != "status" && !(permissionCheck(s, i) && roleCheck(s, i)) {
 		iError = &interactionError{errors.New("Invalid bot permissions"), "Server setup not complete, please use the /status command"}
 		iError.Handle(s, i)
 		return
