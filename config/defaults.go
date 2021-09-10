@@ -5,6 +5,7 @@ import "github.com/spf13/viper"
 func initDefaults() {
 	viper.SetDefault("discord.token", "")
 	viper.SetDefault("discord.app.id", "")
+	viper.SetDefault("discord.bot.invite", "")
 
 	viper.SetDefault("api.url", "")
 	viper.SetDefault("api.port", "")
