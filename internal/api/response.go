@@ -13,17 +13,17 @@ type Resp struct {
 	Fields  map[string]interface{} `json:"fields,omitempty"`
 }
 
-func AccessErrorResponse(status int, message string, respErr error) (int, interface{}) {
+func AccessErrorResponse(status int, message string, respErr error) *Resp {
 	if respErr != nil {
 		log.WithError(respErr).Error(message)
 	} else {
 		log.Error(message)
 	}
-	return status, &Resp{Code: status, Type: "Error", Message: message}
+	return &Resp{Code: status, Type: "Error", Message: message}
 }
 
-func AccessSuccessResponse(message string, uid string, gid string, rid string) (int, interface{}) {
+func AccessSuccessResponse(message string, uid string, gid string, rid string) *Resp {
 	fields := map[string]interface{}{"user": uid, "guild": gid, "role": rid}
 	log.WithFields(fields).Info(message)
-	return http.StatusOK, &Resp{Code: http.StatusOK, Type: "Success", Message: message, Fields: fields}
+	return &Resp{Code: http.StatusOK, Type: "Success", Message: message, Fields: fields}
 }
