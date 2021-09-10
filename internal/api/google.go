@@ -31,7 +31,7 @@ func googleLoginHandler(c *gin.Context) {
 
 func googleAuthHandler(c *gin.Context) {
 	if c.Query("hd") != "umail.ucc.ie" {
-		c.JSON(AccessErrorResponse(http.StatusBadRequest, "Invalid umail address", nil))
+		resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusBadRequest, "Invalid umail address", nil))
 	} else {
 		c.Redirect(http.StatusTemporaryRedirect, "/verify?state="+c.Query("state"))
 	}

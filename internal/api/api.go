@@ -1,6 +1,8 @@
 package api
 
 import (
+	"embed"
+	"html/template"
 	"net/http"
 	"strings"
 
@@ -10,12 +12,16 @@ import (
 	"github.com/spf13/viper"
 )
 
+//go:embed assets/*
+var pageData embed.FS
+var infoTemplate = template.Must(template.ParseFS(pageData, "assets/info.html"))
+var resultTemplate = template.Must(template.ParseFS(pageData, "assets/result.html"))
+
 // @title Whodis API
 // @version 0.1
 // @description API to authorize users with given mail domain access to discord guilds
 func InitAPI(s *discordgo.Session) {
 	r := gin.Default()
-
 	r.GET("/google/login", googleLoginHandler)
 	r.GET("/google/auth", googleAuthHandler)
 
@@ -26,30 +32,30 @@ func InitAPI(s *discordgo.Session) {
 	r.GET("/verify", func(c *gin.Context) {
 		encodedDigest := c.Query("state")
 		if len(encodedDigest) == 0 {
-			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error parsing discord digest", nil))
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error parsing discord digest", nil))
 			return
 		}
 		decodedDigest, err := utils.Decrypt(encodedDigest, []byte(viper.GetString("api.secret")))
 		if err != nil {
-			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error decoding discord digest", err))
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error decoding discord digest", err))
 			return
 		}
 		encodedData := strings.Split(decodedDigest, ".")
 		encodedUID, encodedGID := encodedData[0], encodedData[1]
 		decodedUID, err := utils.Decrypt(encodedUID, []byte(viper.GetString("api.secret")))
 		if err != nil {
-			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error decoding discord userID", err))
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error decoding discord userID", err))
 			return
 		}
 		decodedGID, err := utils.Decrypt(encodedGID, []byte(viper.GetString("api.secret")))
 		if err != nil {
-			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error decoding discord guildID", err))
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error decoding discord guildID", err))
 			return
 		}
 		roleID := ""
 		roles, err := s.GuildRoles(decodedGID)
 		if err != nil {
-			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error getting guild roles", err))
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error getting guild roles", err))
 			return
 		}
 		for _, role := range roles {
@@ -59,15 +65,23 @@ func InitAPI(s *discordgo.Session) {
 			}
 		}
 		if roleID == "" {
-			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error finding Member role", nil))
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error finding Member role", nil))
 			return
 		}
 		err = s.GuildMemberRoleAdd(decodedGID, decodedUID, roleID)
 		if err != nil {
-			c.JSON(AccessErrorResponse(http.StatusInternalServerError, "Error adding Member role to user", err))
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error adding Member role to user", err))
 			return
 		}
-		c.JSON(AccessSuccessResponse("Role has been added to user", decodedUID, decodedGID, roleID))
+		resultTemplate.Execute(c.Writer, *AccessSuccessResponse("Role has been added to user", decodedUID, decodedGID, roleID))
 	})
+
+	r.GET("/invite", func(c *gin.Context) {
+		c.Writer.Header().Add("Location", viper.GetString("discord.bot.invite"))
+		c.Writer.WriteHeader(308)
+	})
+
+	r.NoRoute(func(c *gin.Context) { infoTemplate.Execute(c.Writer, nil) })
+
 	r.Run(":" + viper.GetString("api.port"))
 }
