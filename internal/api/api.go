@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+const success = "You have successfully been added to the server."
+
 //go:embed assets/*
 var pageData embed.FS
 var infoTemplate = template.Must(template.ParseFS(pageData, "assets/info.html"))
@@ -81,7 +83,7 @@ func InitAPI(s *discordgo.Session) {
 			}
 		}
 		if channelID == "" {
-			resultTemplate.Execute(c.Writer, *AccessSuccessResponse("Role has been added to user", decodedUID, decodedGID, roleID))
+			resultTemplate.Execute(c.Writer, *AccessSuccessResponse(success, decodedUID, decodedGID, roleID))
 			return
 		}
 		user, err := s.User(decodedUID)
@@ -93,7 +95,7 @@ func InitAPI(s *discordgo.Session) {
 			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error sending message to welcome channel", err))
 			return
 		}
-		resultTemplate.Execute(c.Writer, *AccessSuccessResponse("Role has been added to user", decodedUID, decodedGID, roleID))
+		resultTemplate.Execute(c.Writer, *AccessSuccessResponse(success, decodedUID, decodedGID, roleID))
 	})
 
 	r.GET("/invite", func(c *gin.Context) {
