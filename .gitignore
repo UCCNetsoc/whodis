@@ -1,2 +1,4 @@
 **/*.swp
 whodis.exe
+.env
+servers

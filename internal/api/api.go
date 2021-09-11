@@ -2,6 +2,7 @@ package api
 
 import (
 	"embed"
+	"errors"
 	"html/template"
 	"net/http"
 	"strings"
@@ -73,6 +74,22 @@ func InitAPI(s *discordgo.Session) {
 			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error adding Member role to user", err))
 			return
 		}
+		channelID, ok := viper.GetStringMapString("discord.guild.members.channel")[decodedGID]
+		if !ok {
+			if channelID, err = getDefaultChannel(s, decodedGID); err != nil {
+				resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error querying channels for welcome message", err))
+				return
+			}
+		}
+		user, err := s.User(decodedUID)
+		if err != nil {
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error getting user", err))
+			return
+		}
+		if _, err := s.ChannelMessageSend(channelID, "Welcome **"+user.Mention()+"**! Thanks for registering!"); err != nil {
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error sending message to welcome channel", err))
+			return
+		}
 		resultTemplate.Execute(c.Writer, *AccessSuccessResponse("Role has been added to user", decodedUID, decodedGID, roleID))
 	})
 
@@ -84,4 +101,21 @@ func InitAPI(s *discordgo.Session) {
 	r.NoRoute(func(c *gin.Context) { infoTemplate.Execute(c.Writer, nil) })
 
 	r.Run(":" + viper.GetString("api.port"))
+}
+
+func getDefaultChannel(s *discordgo.Session, gid string) (string, error) {
+	var channelID string
+	channels, err := s.GuildChannels(gid)
+	if err != nil {
+		return "", err
+	}
+	for _, channel := range channels {
+		if channel.Name == viper.GetString("discord.channel.default") {
+			channelID = channel.ID
+			break
+		}
+	}
+	if channelID == "" {
+		return "", errors.New("No channel found called " + viper.GetString("discord.channel.default"))
+	}
 }
