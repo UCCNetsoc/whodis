@@ -27,6 +27,14 @@ func RegisterSlashCommands(s *discordgo.Session) {
 		StatusCommand,
 	)
 	commands.Register(s)
+	s.AddHandler(func(s *discordgo.Session, a *discordgo.GuildMemberAdd) {
+		g, err := s.Guild(a.GuildID)
+		if err != nil {
+			log.WithError(err).Error("Failed to get guild")
+			return
+		}
+		s.ChannelMessageSend(g.SystemChannelID, "Welcome to **"+g.Name+"** "+a.User.Mention()+"! Type `/verify` to get access to the full server.")
+	})
 }
 
 type CommandHandler func(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) *interactionError
