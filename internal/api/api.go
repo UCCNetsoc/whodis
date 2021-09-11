@@ -2,7 +2,6 @@ package api
 
 import (
 	"embed"
-	"errors"
 	"html/template"
 	"net/http"
 	"strings"
@@ -81,6 +80,10 @@ func InitAPI(s *discordgo.Session) {
 				return
 			}
 		}
+		if channelID == "" {
+			resultTemplate.Execute(c.Writer, *AccessSuccessResponse("Role has been added to user", decodedUID, decodedGID, roleID))
+			return
+		}
 		user, err := s.User(decodedUID)
 		if err != nil {
 			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error getting user", err))
@@ -115,7 +118,5 @@ func getDefaultChannel(s *discordgo.Session, gid string) (string, error) {
 			break
 		}
 	}
-	if channelID == "" {
-		return "", errors.New("No channel found called " + viper.GetString("discord.channel.default"))
-	}
+	return channelID, nil
 }
