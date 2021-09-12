@@ -37,7 +37,7 @@ func SetupCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Intera
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags:   1 << 6, // Whisper Flag
-			Content: "This channel is now setup as the welcome room.\nMake sure users don't have send message permissions on this channel to avoid register message being burried by spam.",
+			Content: "This channel is now setup as the welcome room.\nMake sure users don't have send message permissions on this channel to avoid register message being buried by spam.",
 		},
 	}
 	if err := s.InteractionRespond(i.Interaction, resp); err != nil {
