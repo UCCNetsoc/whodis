@@ -29,7 +29,7 @@ func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 	for _, roleID := range i.Member.Roles {
 		roleName, ok := guildRoleNames[roleID]
 		if ok && roleName == "Member" {
-			return &interactionError{errors.New("Member role is already assigned to user"), "This user is already assigned the `Member` role"}
+			return &interactionError{errors.New("member role is already assigned to user"), "You are already assigned the `Member` role"}
 		}
 	}
 	uid, err := utils.Encrypt(user.ID, []byte(viper.GetString("api.secret")))
@@ -72,7 +72,7 @@ func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 				discordgo.ActionsRow{
 					Components: []discordgo.MessageComponent{
 						discordgo.Button{
-							Label:    "Button has timed out, use /verify to try again!",
+							Label:    "Button has timed out, use /verify or click registration button to try again!",
 							Style:    discordgo.LinkButton,
 							Disabled: true,
 							URL:      "https://netsoc.co/rk",

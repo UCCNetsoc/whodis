@@ -26,22 +26,23 @@ func RegisterSlashCommands(s *discordgo.Session) {
 		},
 		StatusCommand,
 	)
+	commands.Add(
+		&discordgo.ApplicationCommand{
+			Name:        "setup",
+			Description: "Run this command in the welcome room as admin. Creates a registration button.",
+		},
+		SetupCommand,
+	)
+	commands.AddComponent("verify", VerifyCommand)
 	commands.Register(s)
-	s.AddHandler(func(s *discordgo.Session, a *discordgo.GuildMemberAdd) {
-		g, err := s.Guild(a.GuildID)
-		if err != nil {
-			log.WithError(err).Error("Failed to get guild")
-			return
-		}
-		s.ChannelMessageSend(g.SystemChannelID, "Welcome to **"+g.Name+"** "+a.User.Mention()+"! Type `/verify` to get access to the full server.")
-	})
 }
 
 type CommandHandler func(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) *interactionError
 
 type Commands struct {
-	commands []*discordgo.ApplicationCommand
-	handlers map[string]CommandHandler
+	commands          []*discordgo.ApplicationCommand
+	handlers          map[string]CommandHandler
+	componentHandlers map[string]CommandHandler
 }
 
 var (
@@ -57,16 +58,26 @@ func (c *Commands) Add(com *discordgo.ApplicationCommand, handler CommandHandler
 	c.handlers[com.Name] = handler
 }
 
+func (c *Commands) AddComponent(name string, handler CommandHandler) {
+	if c.componentHandlers == nil {
+		c.componentHandlers = map[string]CommandHandler{}
+	}
+	c.componentHandlers[name] = handler
+}
+
 // Register all slash commands.
 func (c *Commands) Register(s *discordgo.Session) error {
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		callHandler(s, i)
-	})
-	for _, comm := range c.commands {
-		if _, err := s.ApplicationCommandCreate(viper.GetString("discord.app.id"), "", comm); err != nil {
-			log.WithError(err).Error("Failed to create command")
-			return err
+		switch i.Type {
+		case discordgo.InteractionApplicationCommand:
+			callCommandHandler(s, i)
+		case discordgo.InteractionMessageComponent:
+			callComponentHandler(s, i)
 		}
+	})
+	if _, err := s.ApplicationCommandBulkOverwrite(viper.GetString("discord.app.id"), "", c.commands); err != nil {
+		log.WithError(err).Error("Failed to create commands")
+		return err
 	}
 	return nil
 }
@@ -74,15 +85,28 @@ func (c *Commands) Register(s *discordgo.Session) error {
 func checkDirectMessage(i *discordgo.InteractionCreate) (*discordgo.User, *interactionError) {
 	if i.GuildID == "" {
 		return nil, &interactionError{
-			errors.New("Command invoked outside of valid guild"),
+			errors.New("command invoked outside of valid guild"),
 			"This command is only available from inside a valid server",
 		}
 	}
 	return i.Member.User, nil
 }
 
+func callComponentHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	m := i.MessageComponentData()
+	handler, ok := commands.componentHandlers[m.CustomID]
+	if !ok {
+		iErr := &interactionError{errors.New("No component handler for " + m.CustomID), "Couldn't handld component"}
+		iErr.Handle(s, i)
+	}
+	iErr := handler(context.Background(), s, i)
+	if iErr != nil {
+		iErr.Handle(s, i)
+	}
+}
+
 // Call command handler.
-func callHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func callCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var iError *interactionError
 	ctx := context.Background()
 	commandAuthor, iError := checkDirectMessage(i)
@@ -93,7 +117,7 @@ func callHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	commandName := i.ApplicationCommandData().Name
 	roleExists, roleAccess := botPermissionCheck(s, i.GuildID)
 	if commandName != "status" && !(roleExists && roleAccess) {
-		iError = &interactionError{errors.New("Setup is not complete"), "Server setup not complete, please use the /status command"}
+		iError = &interactionError{errors.New("setup is not complete"), "Server setup not complete, please use the /status command"}
 		iError.Handle(s, i)
 		return
 	}
