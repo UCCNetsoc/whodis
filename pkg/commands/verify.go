@@ -47,13 +47,13 @@ func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: fmt.Sprintf("Hey **%s**! Welcome to **%s**!", user.Username, guild.Name),
+			Content: fmt.Sprintf("Hey **%s**! Welcome to **%s**!\nJust click the link below and make sure to signin with your **%s** account.", user.Username, guild.Name, viper.GetString("oauth.google.domain")),
 			Flags:   1 << 6, // Whisper Flag
 			Components: []discordgo.MessageComponent{
 				discordgo.ActionsRow{
 					Components: []discordgo.MessageComponent{
 						discordgo.Button{
-							Label:    "Click here to register",
+							Label:    "Click here to register your " + viper.GetString("oauth.google.domain") + " account.",
 							Style:    discordgo.LinkButton,
 							Disabled: false,
 							URL:      viper.GetString("api.url") + "/discord/auth?state=" + encoded,
