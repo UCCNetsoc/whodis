@@ -6,7 +6,7 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
+    branches: [master]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -28,6 +28,7 @@ jobs:
           && sudo add-apt-repository -y ppa:git-core/ppa \
           && sudo apt-get update \
           && sudo apt-get install -y git
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
@@ -36,7 +37,7 @@ jobs:
 
       # Builds docker images and pushes them to GHCR
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ secrets.GHCR_USER }}
@@ -56,3 +57,20 @@ jobs:
           push: true
           context: .
           tags: ghcr.io/uccnetsoc/whodis:latest, ghcr.io/uccnetsoc/whodis:${{ github.sha }}
+
+  deploy:
+    needs: [build]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ansible playbook runner via SSH Action
+        uses: UCCNetsoc/ansible-action@main
+        with:
+          tags: "whodis"
+          control_host: ${{ secrets.CONTROL_HOST }}
+          control_user: ${{ secrets.CONTROL_USER }}
+          control_ssh_key: ${{ secrets.SSH_KEY }}
+          directory: ${{ secrets.CONTROL_DIRECTORY }}
+          vault_pass: ${{ secrets.VAULT_PASS }}
+          port: ${{ secrets.CONTROL_PORT }}
