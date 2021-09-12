@@ -87,9 +87,9 @@ func addRoles(s *discordgo.Session, gid, uid string) error {
 	if err := s.GuildMemberRoleAdd(gid, uid, roleID); err != nil {
 		return err
 	}
-	additID := utils.GetRoleIDFromName(roles, viper.GetString("discord.additional.roles"))
+	additID := utils.GetRoleIDFromName(roles, viper.GetString("discord.additional.role"))
 	if additID == "" {
-		return errors.New("no role called: " + viper.GetString("discord.additional.roles"))
+		return errors.New("no role called: " + viper.GetString("discord.additional.role"))
 	}
 	if err := s.GuildMemberRoleAdd(gid, uid, additID); err != nil {
 		return err
