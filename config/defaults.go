@@ -15,5 +15,6 @@ func initDefaults() {
 
 	viper.SetDefault("oauth.google.id", "")
 	viper.SetDefault("oauth.google.secret", "")
+	viper.SetDefault("oauth.google.domain", "umail.ucc.ie")
 
 }

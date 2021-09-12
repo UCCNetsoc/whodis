@@ -30,9 +30,9 @@ func googleLoginHandler(c *gin.Context) {
 }
 
 func googleAuthHandler(c *gin.Context) {
-	if c.Query("hd") != "umail.ucc.ie" {
-		resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusBadRequest, "Invalid umail address", nil))
-	} else {
-		c.Redirect(http.StatusTemporaryRedirect, "/verify?state="+c.Query("state"))
+	if c.Query("hd") != viper.GetString("oauth.google.domain") {
+		resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusBadRequest, "Invalid oauth domain. Wanted: "+viper.GetString("oauth.google.domain"), nil))
+		return
 	}
+	c.Redirect(http.StatusTemporaryRedirect, "/verify?state="+c.Query("state"))
 }
