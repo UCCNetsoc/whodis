@@ -28,8 +28,8 @@ func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 	}
 	for _, roleID := range i.Member.Roles {
 		roleName, ok := guildRoleNames[roleID]
-		if ok && roleName == "Member" {
-			return &interactionError{errors.New("member role is already assigned to user"), "You are already assigned the `Member` role"}
+		if ok && roleName == viper.GetString("discord.member.role") {
+			return &interactionError{errors.New("member role is already assigned to user"), "You are already assigned the `" + viper.GetString("discord.member.role") + "` role."}
 		}
 	}
 	uid, err := utils.Encrypt(user.ID, []byte(viper.GetString("api.secret")))

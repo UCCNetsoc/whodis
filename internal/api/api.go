@@ -54,24 +54,27 @@ func InitAPI(s *discordgo.Session) {
 			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error decoding discord guildID", err))
 			return
 		}
-		roleID := ""
 		roles, err := s.GuildRoles(decodedGID)
 		if err != nil {
 			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error getting guild roles", err))
 			return
 		}
-		for _, role := range roles {
-			if role.Name == "Member" {
-				roleID = role.ID
-				break
-			}
-		}
+		roleID := utils.GetRoleIDFromName(roles, viper.GetString("discord.member.role"))
 		if roleID == "" {
 			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error finding Member role", nil))
 			return
 		}
-		err = s.GuildMemberRoleAdd(decodedGID, decodedUID, roleID)
-		if err != nil {
+		for _, roleName := range viper.GetStringSlice("discord.additional.roles") {
+			id := utils.GetRoleIDFromName(roles, roleName)
+			if id == "" {
+				continue
+			}
+			if err := s.GuildMemberRoleAdd(decodedGID, decodedUID, id); err != nil {
+				resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error adding additional role to user", err))
+				return
+			}
+		}
+		if err := s.GuildMemberRoleAdd(decodedGID, decodedUID, roleID); err != nil {
 			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error adding Member role to user", err))
 			return
 		}

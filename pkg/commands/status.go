@@ -17,7 +17,7 @@ const (
 // StatusCommand checks for server compatibility issues.
 func StatusCommand(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) *interactionError {
 	if !memberPermissionCheck(s, i.GuildID, i.Member) {
-		return &interactionError{errors.New("User has invalid permissions"), "You do not have valid permissions to use this command"}
+		return &interactionError{errors.New("user has invalid permissions"), "You do not have valid permissions to use this command"}
 	}
 	response := &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -96,7 +96,7 @@ func botPermissionCheck(s *discordgo.Session, guildID string) (roleExists bool, 
 	}
 	var memberRole *discordgo.Role
 	for _, role := range guildRoleMap {
-		if role.Name == "Member" {
+		if role.Name == viper.GetString("discord.member.role") {
 			memberRole = role
 		}
 	}

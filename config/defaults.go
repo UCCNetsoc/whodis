@@ -5,6 +5,8 @@ import "github.com/spf13/viper"
 func initDefaults() {
 	viper.SetDefault("discord.token", "")
 	viper.SetDefault("discord.app.id", "")
+	viper.SetDefault("discord.member.role", "Member")
+	viper.SetDefault("discord.additional.roles", []string{})
 	viper.SetDefault("discord.bot.invite", "")
 	viper.SetDefault("discord.guild.members.channel", map[string]string{})
 	viper.SetDefault("discord.channel.default", "general")
