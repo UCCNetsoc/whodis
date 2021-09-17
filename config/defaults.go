@@ -10,6 +10,8 @@ func initDefaults() {
 	viper.SetDefault("discord.bot.invite", "")
 	viper.SetDefault("discord.guild.members.channel", map[string]string{})
 	viper.SetDefault("discord.channel.default", "general")
+	viper.SetDefault("discord.guild.members.welcome", map[string]string{})
+	viper.SetDefault("discord.welcome.default", "Thanks for registering!")
 
 	viper.SetDefault("api.url", "")
 	viper.SetDefault("api.port", "")

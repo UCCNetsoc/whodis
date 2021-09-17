@@ -46,13 +46,19 @@ func createVerifyHandler(s *discordgo.Session) gin.HandlerFunc {
 			return
 		}
 
+		// Get welcome message.
+		welcomeMessage, ok := viper.GetStringMapString("discord.guild.members.welcome")[gid]
+		if !ok {
+			welcomeMessage = viper.GetString("discord.welcome.default")
+		}
+
 		// Welcome user in channel.
 		user, err := s.User(uid)
 		if err != nil {
 			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error getting user", err))
 			return
 		}
-		if _, err := s.ChannelMessageSend(channelID, "Welcome **"+user.Mention()+"**! Thanks for registering!"); err != nil {
+		if _, err := s.ChannelMessageSend(channelID, "Welcome **"+user.Mention()+"**! "+welcomeMessage); err != nil {
 			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error sending message to welcome channel", err))
 			return
 		}
