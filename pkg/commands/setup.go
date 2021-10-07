@@ -24,7 +24,7 @@ func SetupCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Intera
 					discordgo.Button{
 						Label:    "Click here to register.",
 						Style:    discordgo.PrimaryButton,
-						CustomID: "verify",
+						CustomID: "v" + concatData(ctx, s, i),
 					},
 				},
 			},
@@ -41,7 +41,15 @@ func SetupCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Intera
 		},
 	}
 	if err := s.InteractionRespond(i.Interaction, resp); err != nil {
-		return &interactionError{err: err, message: "Couldn't reply to interaciton."}
+		return &interactionError{err: err, message: "Couldn't reply to interaction."}
 	}
 	return nil
+}
+
+func concatData(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) string {
+	data := "." + i.ApplicationCommandData().Options[0].ChannelValue(s).ID
+	for _, role := range i.ApplicationCommandData().Options[1:] {
+		data += "." + role.RoleValue(s, i.GuildID).ID
+	}
+	return data
 }
