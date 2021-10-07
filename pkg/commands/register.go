@@ -112,10 +112,16 @@ func checkDirectMessage(i *discordgo.InteractionCreate) (*discordgo.User, *inter
 
 func callComponentHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	m := i.MessageComponentData()
+	if m.CustomID == "" {
+		iErr := &interactionError{errors.New("No custom_id assigned to component on message " + i.Message.ID), "Couldn't handle component, invalid custom_id"}
+		iErr.Handle(s, i)
+		return
+	}
 	handler, ok := commands.componentHandlers[string(m.CustomID[0])]
 	if !ok {
 		iErr := &interactionError{errors.New("No component handler for " + m.CustomID), "Couldn't handle component"}
 		iErr.Handle(s, i)
+		return
 	}
 	iErr := handler(context.Background(), s, i)
 	if iErr != nil {
