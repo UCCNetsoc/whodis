@@ -23,12 +23,12 @@ var resultTemplate = template.Must(template.ParseFS(pageData, "assets/result.htm
 // createVerifyHandler creates handles the /verify callback endpoint.
 func createVerifyHandler(s *discordgo.Session) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		uid, gid, err := idsFromState(c.Query("state"))
+		uid, gid, cid, rid, err := dataFromState(c.Query("state"))
 		if err != nil {
 			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error decoding state from URL.", err))
 			return
 		}
-		if err := addRoles(s, gid, uid); err != nil {
+		if err := addRoles(s, gid, uid, rid); err != nil {
 			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error adding roles to Discord user.", err))
 			return
 		}
@@ -36,7 +36,9 @@ func createVerifyHandler(s *discordgo.Session) gin.HandlerFunc {
 		// Get welcome channel.
 		channelID, ok := viper.GetStringMapString("discord.guild.members.channel")[gid]
 		if !ok {
-			if channelID, err = getDefaultChannel(s, gid); err != nil {
+			if cid != "" {
+				channelID = cid
+			} else if channelID, err = getDefaultChannel(s, gid); err != nil {
 				resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Error querying channels for welcome message.", err))
 				return
 			}
@@ -81,7 +83,7 @@ func getDefaultChannel(s *discordgo.Session, gid string) (string, error) {
 	return channelID, nil
 }
 
-func addRoles(s *discordgo.Session, gid, uid string) error {
+func addRoles(s *discordgo.Session, gid, uid string, rid []string) error {
 	roles, err := s.GuildRoles(gid)
 	if err != nil {
 		return err
@@ -93,17 +95,15 @@ func addRoles(s *discordgo.Session, gid, uid string) error {
 	if err := s.GuildMemberRoleAdd(gid, uid, roleID); err != nil {
 		return err
 	}
-	additID := utils.GetRoleIDFromName(roles, viper.GetString("discord.additional.role"))
-	if additID == "" {
-		return errors.New("no role called: " + viper.GetString("discord.additional.role"))
-	}
-	if err := s.GuildMemberRoleAdd(gid, uid, additID); err != nil {
-		return err
+	for _, additionalRoleID := range rid {
+		if err := s.GuildMemberRoleAdd(gid, uid, additionalRoleID); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func idsFromState(state string) (uid string, gid string, err error) {
+func dataFromState(state string) (uid string, gid string, cid string, rid []string, err error) {
 	if len(state) == 0 {
 		err = errors.New("no state found")
 		return
@@ -119,6 +119,10 @@ func idsFromState(state string) (uid string, gid string, err error) {
 	}
 	if gid, err = utils.Decrypt(encodedGID, []byte(viper.GetString("api.secret"))); err != nil {
 		return
+	}
+	cid = encodedData[2]
+	if len(encodedData) > 3 {
+		rid = encodedData[3:]
 	}
 	return
 }

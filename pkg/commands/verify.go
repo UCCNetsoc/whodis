@@ -40,10 +40,11 @@ func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 	if err != nil {
 		return &interactionError{err, "Failed to encrypt guildID"}
 	}
-	encoded, err := utils.Encrypt(fmt.Sprintf("%s.%s", uid, gid), []byte(viper.GetString("api.secret")))
+	encoded, err := utils.Encrypt(fmt.Sprintf("%s.%s.%s", uid, gid, i.MessageComponentData().CustomID[2:]), []byte(viper.GetString("api.secret")))
 	if err != nil {
 		return &interactionError{err, "Failed to encrypt user info digest"}
 	}
+
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{

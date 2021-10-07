@@ -30,6 +30,24 @@ func RegisterSlashCommands(s *discordgo.Session) {
 		&discordgo.ApplicationCommand{
 			Name:        "setup",
 			Description: "Run this command in the welcome room as admin. Creates a registration button.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionChannel,
+					Name:        "message-channel",
+					Description: "Default channel for whodis to send join announcements.",
+					Required:    true,
+				}, {
+					Type:        discordgo.ApplicationCommandOptionRole,
+					Name:        "additional-role-1",
+					Description: "Additional role to be added to users on join.",
+					Required:    false,
+				}, {
+					Type:        discordgo.ApplicationCommandOptionRole,
+					Name:        "additional-role-2",
+					Description: "Additional role to be added to users on join.",
+					Required:    false,
+				},
+			},
 		},
 		SetupCommand,
 	)
@@ -62,7 +80,7 @@ func (c *Commands) AddComponent(name string, handler CommandHandler) {
 	if c.componentHandlers == nil {
 		c.componentHandlers = map[string]CommandHandler{}
 	}
-	c.componentHandlers[name] = handler
+	c.componentHandlers[string(name[0])] = handler
 }
 
 // Register all slash commands.
@@ -94,10 +112,16 @@ func checkDirectMessage(i *discordgo.InteractionCreate) (*discordgo.User, *inter
 
 func callComponentHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	m := i.MessageComponentData()
-	handler, ok := commands.componentHandlers[m.CustomID]
-	if !ok {
-		iErr := &interactionError{errors.New("No component handler for " + m.CustomID), "Couldn't handld component"}
+	if m.CustomID == "" {
+		iErr := &interactionError{errors.New("No custom_id assigned to component on message " + i.Message.ID), "Couldn't handle component, invalid custom_id"}
 		iErr.Handle(s, i)
+		return
+	}
+	handler, ok := commands.componentHandlers[string(m.CustomID[0])]
+	if !ok {
+		iErr := &interactionError{errors.New("No component handler for " + m.CustomID), "Couldn't handle component"}
+		iErr.Handle(s, i)
+		return
 	}
 	iErr := handler(context.Background(), s, i)
 	if iErr != nil {

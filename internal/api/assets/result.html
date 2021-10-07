@@ -88,6 +88,19 @@
             color: #fff
         }
     </style>
+    <script type="text/javascript">
+        function stopReload(){
+            const nextURL = window.location.hostname;
+            const nextState = { additionalInformation: 'Updated the URL with JS' };
+
+            // Create a new entry in the browser's history, without reloading
+            window.history.pushState(nextState, nextURL);
+
+            // Replace the current entry in the browser's history, without reloading
+            window.history.replaceState(nextState, nextURL);
+        }
+        window.onload = stopReload;
+    </script>
 </head>
 <body>
     <div id=header><img src=https://raw.githubusercontent.com/UCCNetsoc/wiki/master/assets/logo-horizontal.svg></div>
