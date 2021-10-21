@@ -1,8 +1,10 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
+	"github.com/Strum355/log"
 	"github.com/bwmarrin/discordgo"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -12,7 +14,20 @@ import (
 // @version 0.1
 // @description API to authorize users with given mail domain access to discord guilds
 func InitAPI(s *discordgo.Session) {
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
+		ctx := context.WithValue(context.Background(), log.Key, log.Fields{
+			"method":  param.Method,
+			"path":    param.Path,
+			"status":  param.StatusCode,
+			"latency": param.Latency,
+			"agent":   param.Request.UserAgent(),
+		})
+		log.WithContext(ctx).Info("invoked request")
+		return ""
+	}))
+	r.Use(gin.Recovery())
+
 	r.GET("/google/login", googleLoginHandler)
 	r.GET("/google/auth", googleAuthHandler)
 
