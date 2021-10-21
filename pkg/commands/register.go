@@ -128,7 +128,7 @@ func callComponentHandler(s *discordgo.Session, i *discordgo.InteractionCreate) 
 			"interaction_type": "component",
 			"command":          commandLabel,
 		})
-		log.WithContext(ctx).Info("Invoking standard command")
+		log.WithContext(ctx).Info("Invoking component command")
 		iErr := handler(ctx, s, i)
 		if iErr != nil {
 			iErr.Handle(s, i)
@@ -168,7 +168,7 @@ func callCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			"interaction_type": "application",
 			"command":          commandName,
 		})
-		log.WithContext(ctx).Info("Invoking standard command")
+		log.WithContext(ctx).Info("Invoking application command")
 		iError = handler(ctx, s, i)
 		if iError != nil {
 			iError.Handle(s, i)
