@@ -26,7 +26,7 @@ func InitGoogleOAuth() {
 }
 
 func googleLoginHandler(c *gin.Context) {
-	c.Redirect(http.StatusTemporaryRedirect, googleConf.AuthCodeURL(c.Query("state")))
+	c.Redirect(http.StatusTemporaryRedirect, googleConf.AuthCodeURL(c.Query("state"))+"&hd="+viper.GetString("oauth.google.domain"))
 }
 
 func googleAuthHandler(c *gin.Context) {
