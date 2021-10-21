@@ -111,21 +111,28 @@ func checkDirectMessage(i *discordgo.InteractionCreate) (*discordgo.User, *inter
 }
 
 func callComponentHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	ctx := context.Background()
 	m := i.MessageComponentData()
 	if m.CustomID == "" {
 		iErr := &interactionError{errors.New("No custom_id assigned to component on message " + i.Message.ID), "Couldn't handle component, invalid custom_id"}
 		iErr.Handle(s, i)
 		return
 	}
-	handler, ok := commands.componentHandlers[string(m.CustomID[0])]
-	if !ok {
-		iErr := &interactionError{errors.New("No component handler for " + m.CustomID), "Couldn't handle component"}
-		iErr.Handle(s, i)
-		return
-	}
-	iErr := handler(context.Background(), s, i)
-	if iErr != nil {
-		iErr.Handle(s, i)
+	commandLabel := string(m.CustomID[0])
+	if handler, ok := commands.componentHandlers[commandLabel]; ok {
+		ctx := context.WithValue(ctx, log.Key, log.Fields{
+			"user_id":          i.Member.User.ID,
+			"channel_id":       i.ChannelID,
+			"guild_id":         i.GuildID,
+			"user":             i.Member.User.Username,
+			"interaction_type": "component",
+			"command":          commandLabel,
+		})
+		log.WithContext(ctx).Info("Invoking standard command")
+		iErr := handler(ctx, s, i)
+		if iErr != nil {
+			iErr.Handle(s, i)
+		}
 	}
 }
 
@@ -153,12 +160,13 @@ func callCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 	if handler, ok := commands.handlers[commandName]; ok {
 		ctx := context.WithValue(ctx, log.Key, log.Fields{
-			"author_id":    commandAuthor.ID,
-			"channel_id":   i.ChannelID,
-			"guild_id":     i.GuildID,
-			"user":         commandAuthor.Username,
-			"channel_name": channel.Name,
-			"command":      commandName,
+			"author_id":        commandAuthor.ID,
+			"channel_id":       i.ChannelID,
+			"guild_id":         i.GuildID,
+			"user":             commandAuthor.Username,
+			"channel_name":     channel.Name,
+			"interaction_type": "application",
+			"command":          commandName,
 		})
 		log.WithContext(ctx).Info("Invoking standard command")
 		iError = handler(ctx, s, i)
