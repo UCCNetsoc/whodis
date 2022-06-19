@@ -28,31 +28,51 @@ func RegisterSlashCommands(s *discordgo.Session) {
 	)
 	commands.Add(
 		&discordgo.ApplicationCommand{
+			Name:        "version",
+			Description: "Get the version of the bot.",
+		},
+		VersionCommand,
+	)
+	commands.Add(
+		&discordgo.ApplicationCommand{
 			Name:        "setup",
 			Description: "Run this command in the welcome room as admin. Creates a registration button.",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionChannel,
-					Name:        "message-channel",
+					Name:        "announce-channel",
 					Description: "Default channel for whodis to send join announcements.",
 					Required:    true,
 				}, {
+					Type:        discordgo.ApplicationCommandOptionChannel,
+					Name:        "logging-channel",
+					Description: "Channel to send logs in.",
+					Required:    true,
+				}, {
 					Type:        discordgo.ApplicationCommandOptionRole,
-					Name:        "additional-role-1",
-					Description: "Additional role to be added to users on join.",
+					Name:        "given-role-1",
+					Description: "Optional role to add to users on registration.",
 					Required:    false,
 				}, {
 					Type:        discordgo.ApplicationCommandOptionRole,
-					Name:        "additional-role-2",
-					Description: "Additional role to be added to users on join.",
+					Name:        "given-role-2",
+					Description: "Optional additional role to add to users on registration.",
 					Required:    false,
 				},
 			},
 		},
 		SetupCommand,
 	)
+
+	// for _, com := range appCommands {
+	// 	commands.Add(com.Command, com.Handler)
+	// 	s.ApplicationCommandCreate(s.State.User.ID, viper.GetString("test.guild"), com.Command)
+	// }
+
 	commands.AddComponent("verify", VerifyCommand)
-	commands.Register(s)
+	if err := commands.Register(s); err != nil {
+		log.WithError(err).Error("Failed to register slash commands")
+	}
 }
 
 type CommandHandler func(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) *interactionError
@@ -93,7 +113,7 @@ func (c *Commands) Register(s *discordgo.Session) error {
 			callComponentHandler(s, i)
 		}
 	})
-	if _, err := s.ApplicationCommandBulkOverwrite(viper.GetString("discord.app.id"), "", c.commands); err != nil {
+	if _, err := s.ApplicationCommandBulkOverwrite(viper.GetString("discord.app.id"), "976394713903009793", c.commands); err != nil {
 		log.WithError(err).Error("Failed to create commands")
 		return err
 	}
@@ -104,7 +124,7 @@ func checkDirectMessage(i *discordgo.InteractionCreate) (*discordgo.User, *inter
 	if i.GuildID == "" {
 		return nil, &interactionError{
 			errors.New("command invoked outside of valid guild"),
-			"This command is only available from inside a valid server",
+			"This command is only available in a valid server",
 		}
 	}
 	return i.Member.User, nil
@@ -114,7 +134,10 @@ func callComponentHandler(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	ctx := context.Background()
 	m := i.MessageComponentData()
 	if m.CustomID == "" {
-		iErr := &interactionError{errors.New("No custom_id assigned to component on message " + i.Message.ID), "Couldn't handle component, invalid custom_id"}
+		iErr := &interactionError{
+			errors.New("No custom_id assigned to component on message " + i.Message.ID),
+			"Couldn't handle component, invalid custom_id",
+		}
 		iErr.Handle(s, i)
 		return
 	}
@@ -145,19 +168,23 @@ func callCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		iError.Handle(s, i)
 		return
 	}
+
 	commandName := i.ApplicationCommandData().Name
 	roleExists, roleAccess := botPermissionCheck(s, i.GuildID)
 	if commandName != "status" && !(roleExists && roleAccess) {
-		iError = &interactionError{errors.New("setup is not complete"), "Server setup not complete, please use the /status command"}
+		iError = &interactionError{
+			errors.New("setup is not complete"), "Server setup not complete, please use the /status command"}
 		iError.Handle(s, i)
 		return
 	}
+
 	channel, err := s.Channel(i.ChannelID)
 	if err != nil {
 		iError = &interactionError{err, "Couldn't query channel"}
 		iError.Handle(s, i)
 		return
 	}
+
 	if handler, ok := commands.handlers[commandName]; ok {
 		ctx := context.WithValue(ctx, log.Key, log.Fields{
 			"author_id":        commandAuthor.ID,

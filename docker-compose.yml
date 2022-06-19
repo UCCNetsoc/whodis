@@ -1,0 +1,17 @@
+version: '3.7'
+
+services:
+  bot:
+    build: .
+    container_name: whodis_local
+    ports:
+      - "8080:8080"
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      DISCORD_APP_ID: ${DISCORD_APP_ID}
+      DISCORD_BOT_INVITE: ${DISCORD_BOT_INVITE}
+      API_URL: ${API_URL}
+      API_PORT: '8080'
+      API_SECRET: ${API_SECRET}
+      OAUTH_GOOGLE_ID: ${OAUTH_GOOGLE_ID}
+      OAUTH_GOOGLE_SECRET: ${OAUTH_GOOGLE_SECRET}

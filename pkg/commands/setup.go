@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/UCCNetsoc/whodis/pkg/utils"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -17,7 +18,7 @@ func SetupCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Intera
 		return &interactionError{err: err, message: "Unable to query guild"}
 	}
 	m := &discordgo.MessageSend{
-		Content: "Welcome @everyone to **" + g.Name + "**!",
+		Content: "Welcome to **" + g.Name + "**!",
 		Components: []discordgo.MessageComponent{
 			discordgo.ActionsRow{
 				Components: []discordgo.MessageComponent{
@@ -37,9 +38,14 @@ func SetupCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Intera
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags:   1 << 6, // Whisper Flag
-			Content: "This channel is now setup as the welcome room.\nMake sure users don't have send message permissions on this channel to avoid register message being buried by spam.",
+			Content: "This channel has been setup as the welcome room.\nMake sure users don't have send message permissions on this channel to avoid register message being buried by spam.",
 		},
 	}
+
+	utils.SendLogMessage(s, i.ApplicationCommandData().Options[1].ChannelValue(s).ID,
+		"This channel has been setup as the logging channel.\nDue to the stateless and privacy-conscious nature of Whodis, some errors may not get logged. It is advisable to keep a help channel for new members to who can't authenticate, in case logs don't reflect the errors.",
+	)
+
 	if err := s.InteractionRespond(i.Interaction, resp); err != nil {
 		return &interactionError{err: err, message: "Couldn't reply to interaction."}
 	}
@@ -48,7 +54,8 @@ func SetupCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Intera
 
 func concatData(ctx context.Context, s *discordgo.Session, i *discordgo.InteractionCreate) string {
 	data := "." + i.ApplicationCommandData().Options[0].ChannelValue(s).ID
-	for _, role := range i.ApplicationCommandData().Options[1:] {
+	data += "." + i.ApplicationCommandData().Options[1].ChannelValue(s).ID
+	for _, role := range i.ApplicationCommandData().Options[2:] {
 		data += "." + role.RoleValue(s, i.GuildID).ID
 	}
 	return data

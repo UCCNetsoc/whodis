@@ -8,7 +8,7 @@ import (
 	"io"
 )
 
-// encrypt encrypts plain string with a secret key and returns encrypt string. !!Secret must be 32 byte string!!
+// Encrypt encrypts state with a secret key. !!secret must be 32 byte string!!
 func Encrypt(plainData string, secret []byte) (string, error) {
 	cipherBlock, err := aes.NewCipher(secret)
 	if err != nil {
@@ -27,7 +27,7 @@ func Encrypt(plainData string, secret []byte) (string, error) {
 	return base64.URLEncoding.EncodeToString(aead.Seal(nonce, nonce, []byte(plainData), nil)), nil
 }
 
-// decrypt decrypts encrypt string with a secret key and returns plain string.
+// Decrypt decrypts encrypted string with a secret key and returns plain string.
 func Decrypt(encodedData string, secret []byte) (string, error) {
 	encryptData, err := base64.URLEncoding.DecodeString(encodedData)
 	if err != nil {
