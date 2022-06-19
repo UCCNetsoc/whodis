@@ -1,6 +1,6 @@
 # Whodis
 
-[![CI](https://github.com/UCCNetsoc/whodis/actions/workflows/main.yml/badge.svg)](https://github.com/UCCNetsoc/whodis/actions/workflows/main.yml) [![!Whodis Bot Invite link](https://img.shields.io/badge/Whodis-Bot%20Invite-9cf)](https://google.com)
+[![CI](https://github.com/UCCNetsoc/whodis/actions/workflows/main.yml/badge.svg)](https://github.com/UCCNetsoc/whodis/actions/workflows/main.yml) [![!Whodis Bot Invite link](https://img.shields.io/badge/Whodis-Bot%20Invite-9cf)](https://discord.com/api/oauth2/authorize?client_id=884767116425846784&permissions=268435456&scope=bot%20applications.commands)
 
 A discord bot and API to authenticate Discord members as being UCC students.
 
