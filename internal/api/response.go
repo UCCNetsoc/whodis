@@ -1,6 +1,7 @@
 package api
 
 import (
+	"html/template"
 	"net/http"
 
 	"github.com/Strum355/log"
@@ -8,10 +9,15 @@ import (
 
 type Resp struct {
 	Code    int                    `json:"code"`
-	Type    string                 `json:"type"`
+	Type    template.HTML          `json:"type"`
 	Message string                 `json:"message"`
 	Fields  map[string]interface{} `json:"fields,omitempty"`
 }
+
+const (
+	successType = `<span style='color: limegreen'>Success</span>`
+	errorType   = `<span style='color: red'>Error</span>`
+)
 
 func AccessErrorResponse(status int, message string, respErr error) *Resp {
 	if respErr != nil {
@@ -19,11 +25,11 @@ func AccessErrorResponse(status int, message string, respErr error) *Resp {
 	} else {
 		log.Error(message)
 	}
-	return &Resp{Code: status, Type: "Error", Message: message}
+	return &Resp{Code: status, Type: errorType, Message: message}
 }
 
 func AccessSuccessResponse(message string, uid string, gid string) *Resp {
 	fields := map[string]interface{}{"user": uid, "guild": gid}
 	log.WithFields(fields).Info(message)
-	return &Resp{Code: http.StatusOK, Type: "Success", Message: message, Fields: fields}
+	return &Resp{Code: http.StatusOK, Type: successType, Message: message, Fields: fields}
 }

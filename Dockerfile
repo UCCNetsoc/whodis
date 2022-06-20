@@ -13,6 +13,9 @@ RUN go mod download
 
 COPY . .
 
+# Get latest tag
+RUN git describe --abbrev=0 > /version
+
 RUN go install github.com/UCCNetsoc/whodis/cmd/whodis
 
 CMD [ "go", "run", "*.go" ]
@@ -22,5 +25,6 @@ FROM alpine
 WORKDIR /bin
 
 COPY --from=dev /go/bin/whodis ./whodis
+COPY --from=dev /version /version
 
-CMD ["sh", "-c", "whodis -p"]
+CMD ["sh", "-c", "export BOT_VERSION=$(cat /version) && whodis -p"]

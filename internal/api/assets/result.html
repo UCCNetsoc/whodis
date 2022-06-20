@@ -15,7 +15,9 @@
             font-size: 14px;
             font-weight: 400;
             font-family: Roboto, sans-serif !important;
-            color: #fff
+            color: #fff;
+            min-height: 100vh;
+            position: relative;
         }
 
         #header {
@@ -39,12 +41,12 @@
         #content-body {
             padding-top: 16px;
             border-top: 1px solid #333;
-            color: gray;
+            color: #b9b9b9;
             border-bottom: 1px solid #333
         }
 
         p {
-            max-width: 380px;
+            max-width: 400px;
             margin: 0 auto;
             padding: 16px;
         }
@@ -87,6 +89,15 @@
         a {
             color: #fff
         }
+
+        footer {
+            width: 100%;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding-bottom: 16px;
+        }
     </style>
     <script type="text/javascript">
         function stopReload(){
@@ -109,20 +120,16 @@
             <h1>Whodis Authentication Service</h1>
         </div>
         <div id="content-body">
-            <h2>{{.Type}}</h2>
+            <h2 id="status"><span>Success</span></h2>
             <p style="color: white">{{.Message}}</p>
-            <p>Contact Netsoc SysAdmins on our <a href='http://discord.netsoc.co'>Discord</a> if you encounter any issues
+            <p>Contact Netsoc SysAdmins on our <a href='http://discord.netsoc.co'>Discord</a>, or <a href="https://github.com/UCCNetsoc/whodis/issues/new">create an issue</a> if you encounter any issues
         </div>
-        <div style="
-      margin: 0 auto;
-      text-align: center;
-      padding-top: 16px;
-      font-size: 11px;
-      color: gray;
-    ">
+        <footer>
             <a target="_blank" href="https://discord.netsoc.co">Discord</a>
             <span> • </span>
-            <a target="_blank" href="https://wiki.netsoc.co/en/services/terms-of-service">Terms of Service</a>
+            <a target="_blank" href="https://github.com/UCCNetsoc/whodis">Source Code</a>
+            <span> • </span>
+            <a target="_blank" href="https://github.com/UCCNetsoc/whodis/blob/master/README.md#privacy-concerns">Privacy Notice</a>
         </div>
 </body>
 </html>
