@@ -153,12 +153,6 @@ func dataFromState(state string) (uid string, gid string, announce_cid string, l
 	log.Info("Decoded digest: " + decodedDigest)
 	encodedData := strings.Split(decodedDigest, ".")
 	uid, gid = encodedData[0], encodedData[1]
-	// if uid, err = utils.Decrypt(encodedUID, []byte(viper.GetString("api.secret"))); err != nil {
-	// 	return
-	// }
-	// if gid, err = utils.Decrypt(encodedGID, []byte(viper.GetString("api.secret"))); err != nil {
-	// 	return
-	// }
 	announce_cid = encodedData[2]
 	logging_cid = encodedData[3]
 	if len(encodedData) > 3 {

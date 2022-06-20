@@ -64,11 +64,6 @@ func RegisterSlashCommands(s *discordgo.Session) {
 		SetupCommand,
 	)
 
-	// for _, com := range appCommands {
-	// 	commands.Add(com.Command, com.Handler)
-	// 	s.ApplicationCommandCreate(s.State.User.ID, viper.GetString("test.guild"), com.Command)
-	// }
-
 	commands.AddComponent("verify", VerifyCommand)
 	if err := commands.Register(s); err != nil {
 		log.WithError(err).Error("Failed to register slash commands")

@@ -45,7 +45,6 @@ func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 		fmt.Sprintf("%s.%s.%s", user.ID, guild.ID, i.MessageComponentData().CustomID[2:]), []byte(viper.GetString("api.secret")),
 	)
 	if err != nil {
-		// utils.SendLogMessage(s, i.MessageComponentData().CustomID[2:], "Failed to encrypt data")
 		return &interactionError{err, "Failed to encrypt user info digest"}
 	}
 
