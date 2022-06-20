@@ -108,7 +108,7 @@ func (c *Commands) Register(s *discordgo.Session) error {
 			callComponentHandler(s, i)
 		}
 	})
-	if _, err := s.ApplicationCommandBulkOverwrite(viper.GetString("discord.app.id"), "976394713903009793", c.commands); err != nil {
+	if _, err := s.ApplicationCommandBulkOverwrite(viper.GetString("discord.app.id"), "", c.commands); err != nil {
 		log.WithError(err).Error("Failed to create commands")
 		return err
 	}
