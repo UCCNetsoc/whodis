@@ -66,6 +66,10 @@ func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 							Style:    discordgo.LinkButton,
 							Disabled: false,
 							URL:      viper.GetString("api.url") + "/discord/auth?state=" + encoded,
+							Emoji: discordgo.ComponentEmoji{
+								ID:       "1001252626438033508",
+								Animated: true,
+							},
 						},
 					},
 				},
@@ -77,8 +81,8 @@ func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 	}
 
 	time.AfterFunc(time.Second*15, func() {
-		s.InteractionResponseEdit(s.State.User.ID, i.Interaction, &discordgo.WebhookEdit{
-			Components: []discordgo.MessageComponent{
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Components: &[]discordgo.MessageComponent{
 				discordgo.ActionsRow{
 					Components: []discordgo.MessageComponent{
 						discordgo.Button{
@@ -86,6 +90,9 @@ func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 							Style:    discordgo.LinkButton,
 							Disabled: true,
 							URL:      "https://netsoc.co/rk",
+							Emoji: discordgo.ComponentEmoji{
+								Name: "❌",
+							},
 						},
 					},
 				},

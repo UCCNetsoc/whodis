@@ -26,6 +26,9 @@ func SetupCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Intera
 						Label:    "Click here to register.",
 						Style:    discordgo.PrimaryButton,
 						CustomID: "v" + concatData(ctx, s, i),
+						Emoji: discordgo.ComponentEmoji{
+							Name: "😊",
+						},
 					},
 				},
 			},
