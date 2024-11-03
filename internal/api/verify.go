@@ -42,6 +42,25 @@ func createVerifyHandler(s *discordgo.Session) gin.HandlerFunc {
 			utils.SendLogMessage(s, logging_cid, "Failed to get user `"+uid+"` from Discord API to add roles.")
 			return
 		}
+		allRoles, err := s.GuildRoles(gid)
+		if err != nil {
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Failed to query roles", err))
+			utils.SendLogMessage(s, logging_cid, "Failed to query discord API for roles.")
+			return
+		}
+		signUpName, err := createSignUpsRole(s, gid)
+		if err != nil {
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Failed creating signup role", err))
+			utils.SendLogMessage(s, logging_cid, "Failed to create signup roles.")
+			return
+		}
+		signUpID := utils.GetRoleIDFromName(allRoles, signUpName)
+		if signUpID == "" {
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Failed getting role id", err))
+			utils.SendLogMessage(s, logging_cid, "Failed to get signup role id.")
+			return
+		}
+		rid = append(rid, signUpID)
 
 		if err := addRoles(s, gid, uid, rid); err != nil {
 			resultTemplate.Execute(c.Writer,
@@ -132,18 +151,6 @@ func addRoles(s *discordgo.Session, gid, uid string, rid []string) error {
 		return errors.New("no role called: " + viper.GetString("discord.member.role"))
 	}
 	if err := s.GuildMemberRoleAdd(gid, uid, roleID); err != nil {
-		return err
-	}
-
-	signUpName, err := createSignUpsRole(s, gid)
-	if err != nil {
-		return err
-	}
-	signUpID := utils.GetRoleIDFromName(roles, signUpName)
-	if signUpID == "" {
-		return errors.New("no role called: " + signUpName)
-	}
-	if err := s.GuildMemberRoleAdd(gid, uid, signUpID); err != nil {
 		return err
 	}
 
