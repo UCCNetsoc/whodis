@@ -41,8 +41,16 @@ func VerifyCommand(ctx context.Context, s *discordgo.Session, i *discordgo.Inter
 	}
 
 	// encode the userID, guildID, ( welcome channel, logging channel, and roles to give to verified user )
+	var customID string
+
+	if i.Type == discordgo.InteractionApplicationCommand {
+		customID = i.ApplicationCommandData().Name // slash command
+	} else {
+		customID = i.MessageComponentData().CustomID[2:] // interaction
+	}
+
 	encoded, err := utils.Encrypt(
-		fmt.Sprintf("%s.%s.%s", user.ID, guild.ID, i.MessageComponentData().CustomID[2:]), []byte(viper.GetString("api.secret")),
+		fmt.Sprintf("%s.%s.%s", user.ID, guild.ID, customID), []byte(viper.GetString("api.secret")),
 	)
 	if err != nil {
 		return &interactionError{err, "Failed to encrypt user info digest"}

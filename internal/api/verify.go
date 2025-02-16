@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/Strum355/log"
@@ -41,6 +42,25 @@ func createVerifyHandler(s *discordgo.Session) gin.HandlerFunc {
 			utils.SendLogMessage(s, logging_cid, "Failed to get user `"+uid+"` from Discord API to add roles.")
 			return
 		}
+		allRoles, err := s.GuildRoles(gid)
+		if err != nil {
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Failed to query roles", err))
+			utils.SendLogMessage(s, logging_cid, "Failed to query discord API for roles.")
+			return
+		}
+		signUpName, err := createSignUpsRole(s, gid)
+		if err != nil {
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Failed creating signup role", err))
+			utils.SendLogMessage(s, logging_cid, "Failed to create signup roles.")
+			return
+		}
+		signUpID := utils.GetRoleIDFromName(allRoles, signUpName)
+		if signUpID == "" {
+			resultTemplate.Execute(c.Writer, AccessErrorResponse(http.StatusInternalServerError, "Failed getting role id", err))
+			utils.SendLogMessage(s, logging_cid, "Failed to get signup role id.")
+			return
+		}
+		rid = append(rid, signUpID)
 
 		if err := addRoles(s, gid, uid, rid); err != nil {
 			resultTemplate.Execute(c.Writer,
@@ -133,6 +153,7 @@ func addRoles(s *discordgo.Session, gid, uid string, rid []string) error {
 	if err := s.GuildMemberRoleAdd(gid, uid, roleID); err != nil {
 		return err
 	}
+
 	for _, additionalRoleID := range rid {
 		if err := s.GuildMemberRoleAdd(gid, uid, additionalRoleID); err != nil {
 			return err
@@ -159,4 +180,35 @@ func dataFromState(state string) (uid string, gid string, announce_cid string, l
 		rid = encodedData[4:]
 	}
 	return
+}
+
+func createSignUpsRole(s *discordgo.Session, gid string) (signUpName string, err error) {
+	roles, err := s.GuildRoles(gid)
+	if err != nil {
+		return "", err
+	}
+
+	_, month, year := utils.GetTime()
+
+	roleName := "Signups "
+	if month < 9 {
+		roleName += strconv.Itoa(year-1) + "/" + strconv.Itoa(year)
+	} else {
+		roleName += strconv.Itoa(year) + "/" + strconv.Itoa(year+1)
+	}
+
+	roleID := utils.GetRoleIDFromName(roles, roleName)
+	color := 0              // Grey
+	permissions := int64(0) // No permissions
+	if roleID == "" {
+		_, err := s.GuildRoleCreate(gid, &discordgo.RoleParams{
+			Name:        roleName,
+			Color:       &color,
+			Permissions: &permissions,
+		})
+		if err != nil {
+			return "", err
+		}
+	}
+	return roleName, nil
 }
